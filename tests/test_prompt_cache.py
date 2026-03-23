@@ -9,12 +9,12 @@ from myxo.prompt_cache import PromptCacheManager
 
 def test_init_with_cacheable_prefixes():
     manager = PromptCacheManager(cacheable_prefixes=["Ship's Log", "Skills"])
-    assert manager.cacheable_prefixes == ["Ship's Log", "Skills"]
+    assert manager.cacheable_prefixes == ("Ship's Log", "Skills")
 
 
 def test_init_with_empty_prefixes():
     manager = PromptCacheManager(cacheable_prefixes=[])
-    assert manager.cacheable_prefixes == []
+    assert manager.cacheable_prefixes == ()
 
 
 def test_init_default_stats():

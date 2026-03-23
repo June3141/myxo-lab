@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+from typing import Any
 
 
 class PromptCacheManager:
@@ -16,11 +17,18 @@ class PromptCacheManager:
     Args:
         cacheable_prefixes: List of content prefixes that identify immutable,
             cacheable content (e.g. ["Ship's Log", "Skills"]).
+        max_history: Maximum number of content hashes to track. When exceeded,
+            the set is cleared to prevent unbounded memory growth.
     """
 
-    def __init__(self, cacheable_prefixes: list[str]) -> None:
-        self.cacheable_prefixes = cacheable_prefixes
+    def __init__(
+        self,
+        cacheable_prefixes: list[str],
+        max_history: int = 10000,
+    ) -> None:
+        self.cacheable_prefixes = tuple(cacheable_prefixes)
         self._seen_hashes: set[str] = set()
+        self._max_history = max_history
         self._cache_hits = 0
         self._cache_misses = 0
         self._total_requests = 0
@@ -31,7 +39,7 @@ class PromptCacheManager:
             return False
         return any(content.startswith(prefix) for prefix in self.cacheable_prefixes)
 
-    def prepare_messages(self, messages: list[dict]) -> list[dict]:
+    def prepare_messages(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Return a copy of messages with cache_control added to cacheable content.
 
         String content that is cacheable is converted to the block format:
@@ -68,7 +76,7 @@ class PromptCacheManager:
 
         return result
 
-    def get_cache_stats(self) -> dict:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Return cache statistics."""
         return {
             "cache_hits": self._cache_hits,
@@ -85,4 +93,6 @@ class PromptCacheManager:
             self._cache_hits += 1
         else:
             self._cache_misses += 1
+            if len(self._seen_hashes) >= self._max_history:
+                self._seen_hashes.clear()
             self._seen_hashes.add(content_hash)
