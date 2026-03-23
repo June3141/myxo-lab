@@ -408,5 +408,3 @@ $RECYCLE.BIN/
 # Claude Code worktrees
 /.claude/worktrees/
 
-# Design documents (not part of source)
-/ai-agent-infrastructure-report.md
