@@ -1,6 +1,6 @@
 ---
 name: create-pr
-description: Pull Request 作成手順
+description: Pull request creation procedure
 triggers:
   - pr
   - pull-request
@@ -8,15 +8,14 @@ triggers:
 ---
 
 ## Steps
-1. 現在のブランチとベースブランチを確認する
-2. 変更差分を確認しステージする
-3. コミットメッセージを作成する
-4. リモートにプッシュする
-5. `gh pr create` で PR を作成する
+1. Verify the current branch and base branch
+2. Review the diff and stage changes
+3. Write a commit message
+4. Push to the remote
+5. Create the PR with `gh pr create`
 
 ## Rules
-- PR タイトルは70文字以内にする
-- body に Summary セクションを含める
-- Test plan は PR コメントとして追加する
-- base ブランチは develop を使用する
-- Closes #XX で関連 Issue を紐付ける
+- Keep the PR title under 70 characters
+- Include a Summary section in the body
+- Use develop as the base branch
+- Link related issues with Closes #XX

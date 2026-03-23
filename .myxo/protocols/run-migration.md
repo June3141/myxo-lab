@@ -1,6 +1,6 @@
 ---
 name: run-migration
-description: データベースマイグレーション実行手順
+description: Database migration execution procedure
 triggers:
   - migration
   - migrate
@@ -8,14 +8,14 @@ triggers:
 ---
 
 ## Steps
-1. 現在のマイグレーション状態を確認する
-2. 新しいマイグレーションファイルを作成する
-3. マイグレーション内容をレビューする
-4. マイグレーションを実行する
-5. 実行結果を確認する
+1. Check the current migration state
+2. Create a new migration file
+3. Review the migration contents
+4. Run the migration
+5. Verify the results
 
 ## Rules
-- 本番環境ではバックアップを取ってから実行する
-- 破壊的変更を含む場合はロールバック手順を用意する
-- マイグレーションは冪等性を担保する
-- CI でマイグレーションテストを通過させてからマージする
+- Take a backup before running in production
+- Prepare a rollback plan for destructive changes
+- Ensure migrations are idempotent
+- Pass migration tests in CI before merging

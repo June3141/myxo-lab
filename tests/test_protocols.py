@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
+from myxo.protocol_loader import REQUIRED_FRONTMATTER_KEYS
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROTOCOLS_DIR = REPO_ROOT / ".myxo" / "protocols"
 
 EXPECTED_PROTOCOLS = ["create-pr.md", "run-migration.md", "write-test.md"]
-
-REQUIRED_FRONTMATTER_KEYS = {"name", "description", "triggers"}
 
 
 # ---------------------------------------------------------------------------
@@ -148,6 +148,25 @@ def test_load_protocol_invalid_yaml_raises_value_error(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="Invalid YAML frontmatter"):
+        load_protocol(proto_file)
+
+
+def test_load_protocol_directory_raises_value_error(tmp_path: Path) -> None:
+    from myxo.protocol_loader import load_protocol
+
+    with pytest.raises(ValueError, match="Expected a file but got a directory"):
+        load_protocol(tmp_path)
+
+
+def test_load_protocol_non_mapping_frontmatter_raises_value_error(tmp_path: Path) -> None:
+    from myxo.protocol_loader import load_protocol
+
+    proto_file = tmp_path / "list.md"
+    proto_file.write_text(
+        "---\n- item1\n- item2\n---\n\nBody\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Frontmatter must be a YAML mapping"):
         load_protocol(proto_file)
 
 

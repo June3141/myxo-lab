@@ -1,6 +1,6 @@
 ---
 name: write-test
-description: テスト作成手順
+description: Test writing procedure
 triggers:
   - test
   - write-test
@@ -8,17 +8,17 @@ triggers:
 ---
 
 ## Steps
-1. テスト対象の仕様・期待動作を確認する
-2. テストファイルを作成または既存ファイルに追加する
-3. 失敗するテストを書く（RED）
-4. テストを実行して失敗を確認する
-5. テストが正しいことを確認しコミットする
-6. 実装を書いてテストを通す（GREEN）
-7. リファクタリングする（REFACTOR）
+1. Review the specification and expected behavior of the target
+2. Create a test file or add to an existing one
+3. Write a failing test (RED)
+4. Run the test and confirm it fails
+5. Confirm the test is correct and commit
+6. Write the implementation to make the test pass (GREEN)
+7. Refactor (REFACTOR)
 
 ## Rules
-- テスト駆動開発（TDD）のサイクルに従う
-- テストは `tests/` ディレクトリに配置する
-- テスト実行は `uv run pytest` を使用する
-- テストファイル名は `test_` プレフィックスを付ける
-- 各テストは独立して実行可能にする
+- Follow the TDD cycle
+- Place tests in the `tests/` directory
+- Run tests with `uv run pytest`
+- Prefix test filenames with `test_`
+- Each test must be independently runnable
