@@ -3,7 +3,6 @@
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from typer.testing import CliRunner
 
 from myxo.cli import app
@@ -14,6 +13,7 @@ runner = CliRunner()
 # ---------------------------------------------------------------------------
 # Helper: create a minimal .myxo/ directory with config.yaml
 # ---------------------------------------------------------------------------
+
 
 def _create_myxo_dir(base: Path) -> Path:
     """Create a minimal .myxo/ directory with a config that specifies a repo."""
@@ -43,6 +43,7 @@ def _create_myxo_dir(base: Path) -> Path:
 # 1. .myxo/ が無い場合はエラー終了
 # ---------------------------------------------------------------------------
 
+
 def test_verify_fails_without_myxo_dir(tmp_path: Path, monkeypatch):
     """verify should fail with exit code 1 when .myxo/ does not exist."""
     monkeypatch.chdir(tmp_path)
@@ -54,6 +55,7 @@ def test_verify_fails_without_myxo_dir(tmp_path: Path, monkeypatch):
 # ---------------------------------------------------------------------------
 # 2. --fix オプションが受け付けられる
 # ---------------------------------------------------------------------------
+
 
 def test_verify_accepts_fix_option(tmp_path: Path, monkeypatch):
     """verify --fix should be accepted as a valid option."""
@@ -69,6 +71,7 @@ def test_verify_accepts_fix_option(tmp_path: Path, monkeypatch):
 # ---------------------------------------------------------------------------
 # 3. 全チェック OK → exit code 0
 # ---------------------------------------------------------------------------
+
 
 def test_verify_all_ok_exit_code_zero(tmp_path: Path, monkeypatch):
     """verify should exit 0 when all checks pass."""
@@ -98,6 +101,7 @@ def test_verify_all_ok_exit_code_zero(tmp_path: Path, monkeypatch):
 # 4. NG あり → exit code 1
 # ---------------------------------------------------------------------------
 
+
 def test_verify_with_failures_exit_code_one(tmp_path: Path, monkeypatch):
     """verify should exit 1 when any check fails."""
     monkeypatch.chdir(tmp_path)
@@ -124,6 +128,7 @@ def test_verify_with_failures_exit_code_one(tmp_path: Path, monkeypatch):
 # ---------------------------------------------------------------------------
 # 5. 結果テーブルに各チェック項目が表示される
 # ---------------------------------------------------------------------------
+
 
 def test_verify_output_shows_check_results(tmp_path: Path, monkeypatch):
     """verify should display check results including name and status."""
@@ -156,6 +161,7 @@ def test_verify_output_shows_check_results(tmp_path: Path, monkeypatch):
 # 6. --fix が呼ばれたとき fix メソッドが実行される
 # ---------------------------------------------------------------------------
 
+
 def test_verify_fix_calls_fix_methods(tmp_path: Path, monkeypatch):
     """verify --fix should call fix methods when failures exist."""
     monkeypatch.chdir(tmp_path)
@@ -170,7 +176,7 @@ def test_verify_fix_calls_fix_methods(tmp_path: Path, monkeypatch):
     mock_verifier.fix_labels.return_value = None
 
     with patch("myxo.cli._create_verifier", return_value=mock_verifier):
-        result = runner.invoke(app, ["verify", "--fix"])
+        runner.invoke(app, ["verify", "--fix"])
 
     mock_verifier.fix_labels.assert_called_once()
 
@@ -178,6 +184,7 @@ def test_verify_fix_calls_fix_methods(tmp_path: Path, monkeypatch):
 # ---------------------------------------------------------------------------
 # 7. GitHubVerifier の CheckResult dataclass
 # ---------------------------------------------------------------------------
+
 
 def test_check_result_dataclass():
     """CheckResult should have name, status, and message fields."""
@@ -202,9 +209,10 @@ def test_check_result_status_literal():
 # 8. GitHubVerifier.check_labels — API モック
 # ---------------------------------------------------------------------------
 
+
 def test_verifier_check_labels_all_present(tmp_path: Path):
     """check_labels should return ok for labels that exist on GitHub."""
-    from myxo.verifier import CheckResult, GitHubVerifier
+    from myxo.verifier import GitHubVerifier
 
     verifier = GitHubVerifier(token="fake-token")
 
@@ -218,11 +226,15 @@ def test_verifier_check_labels_all_present(tmp_path: Path):
 
     with patch("httpx.AsyncClient.get", return_value=mock_response):
         import asyncio
+
         results = asyncio.run(
-            verifier.check_labels("owner/repo", [
-                {"name": "bug", "color": "d73a4a"},
-                {"name": "enhancement", "color": "a2eeef"},
-            ])
+            verifier.check_labels(
+                "owner/repo",
+                [
+                    {"name": "bug", "color": "d73a4a"},
+                    {"name": "enhancement", "color": "a2eeef"},
+                ],
+            )
         )
 
     assert len(results) == 2
@@ -231,7 +243,7 @@ def test_verifier_check_labels_all_present(tmp_path: Path):
 
 def test_verifier_check_labels_missing(tmp_path: Path):
     """check_labels should return fail for labels that do not exist."""
-    from myxo.verifier import CheckResult, GitHubVerifier
+    from myxo.verifier import GitHubVerifier
 
     verifier = GitHubVerifier(token="fake-token")
 
@@ -243,11 +255,15 @@ def test_verifier_check_labels_missing(tmp_path: Path):
 
     with patch("httpx.AsyncClient.get", return_value=mock_response):
         import asyncio
+
         results = asyncio.run(
-            verifier.check_labels("owner/repo", [
-                {"name": "bug", "color": "d73a4a"},
-                {"name": "enhancement", "color": "a2eeef"},
-            ])
+            verifier.check_labels(
+                "owner/repo",
+                [
+                    {"name": "bug", "color": "d73a4a"},
+                    {"name": "enhancement", "color": "a2eeef"},
+                ],
+            )
         )
 
     assert len(results) == 2
@@ -261,6 +277,7 @@ def test_verifier_check_labels_missing(tmp_path: Path):
 # ---------------------------------------------------------------------------
 # 9. GitHubVerifier.check_branch_protection — API モック
 # ---------------------------------------------------------------------------
+
 
 def test_verifier_check_branch_protection_ok():
     """check_branch_protection should return ok when protection matches config."""
@@ -285,9 +302,8 @@ def test_verifier_check_branch_protection_ok():
 
     with patch("httpx.AsyncClient.get", return_value=mock_response):
         import asyncio
-        results = asyncio.run(
-            verifier.check_branch_protection("owner/repo", config)
-        )
+
+        results = asyncio.run(verifier.check_branch_protection("owner/repo", config))
 
     assert any(r.status == "ok" for r in results)
 
@@ -309,9 +325,8 @@ def test_verifier_check_branch_protection_not_configured():
 
     with patch("httpx.AsyncClient.get", return_value=mock_response):
         import asyncio
-        results = asyncio.run(
-            verifier.check_branch_protection("owner/repo", config)
-        )
+
+        results = asyncio.run(verifier.check_branch_protection("owner/repo", config))
 
     assert any(r.status == "fail" for r in results)
 
@@ -319,6 +334,7 @@ def test_verifier_check_branch_protection_not_configured():
 # ---------------------------------------------------------------------------
 # 10. GitHubVerifier.check_secrets — API モック
 # ---------------------------------------------------------------------------
+
 
 def test_verifier_check_secrets_all_present():
     """check_secrets should return ok for all secrets that exist."""
@@ -337,9 +353,8 @@ def test_verifier_check_secrets_all_present():
 
     with patch("httpx.AsyncClient.get", return_value=mock_response):
         import asyncio
-        results = asyncio.run(
-            verifier.check_secrets("owner/repo", ["DEPLOY_KEY", "API_TOKEN"])
-        )
+
+        results = asyncio.run(verifier.check_secrets("owner/repo", ["DEPLOY_KEY", "API_TOKEN"]))
 
     assert len(results) == 2
     assert all(r.status == "ok" for r in results)
@@ -361,9 +376,8 @@ def test_verifier_check_secrets_missing():
 
     with patch("httpx.AsyncClient.get", return_value=mock_response):
         import asyncio
-        results = asyncio.run(
-            verifier.check_secrets("owner/repo", ["DEPLOY_KEY", "API_TOKEN"])
-        )
+
+        results = asyncio.run(verifier.check_secrets("owner/repo", ["DEPLOY_KEY", "API_TOKEN"]))
 
     ok_results = [r for r in results if r.status == "ok"]
     fail_results = [r for r in results if r.status == "fail"]
@@ -375,6 +389,7 @@ def test_verifier_check_secrets_missing():
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
 
 def _make_result(name: str, status: str, message: str):
     """Create a mock CheckResult-like object."""

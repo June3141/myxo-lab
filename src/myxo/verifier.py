@@ -42,9 +42,7 @@ class GitHubVerifier:
     # Labels
     # ------------------------------------------------------------------
 
-    async def check_labels(
-        self, repo: str, expected: list[dict[str, str]]
-    ) -> list[CheckResult]:
+    async def check_labels(self, repo: str, expected: list[dict[str, str]]) -> list[CheckResult]:
         """Check that all expected labels exist on the repository."""
         async with httpx.AsyncClient() as client:
             resp = await client.get(
@@ -59,20 +57,12 @@ class GitHubVerifier:
         for label in expected:
             name = label["name"]
             if name in existing:
-                results.append(
-                    CheckResult(name=f"label: {name}", status="ok", message="exists")
-                )
+                results.append(CheckResult(name=f"label: {name}", status="ok", message="exists"))
             else:
-                results.append(
-                    CheckResult(
-                        name=f"label: {name}", status="fail", message="missing"
-                    )
-                )
+                results.append(CheckResult(name=f"label: {name}", status="fail", message="missing"))
         return results
 
-    async def fix_labels(
-        self, repo: str, expected: list[dict[str, str]]
-    ) -> None:
+    async def fix_labels(self, repo: str, expected: list[dict[str, str]]) -> None:
         """Create missing labels on the repository."""
         async with httpx.AsyncClient() as client:
             resp = await client.get(
@@ -96,9 +86,7 @@ class GitHubVerifier:
     # Branch Protection
     # ------------------------------------------------------------------
 
-    async def check_branch_protection(
-        self, repo: str, config: dict[str, Any]
-    ) -> list[CheckResult]:
+    async def check_branch_protection(self, repo: str, config: dict[str, Any]) -> list[CheckResult]:
         """Check branch protection settings."""
         branch = config["branch"]
 
@@ -166,9 +154,7 @@ class GitHubVerifier:
 
         return results
 
-    async def fix_branch_protection(
-        self, repo: str, config: dict[str, Any]
-    ) -> None:
+    async def fix_branch_protection(self, repo: str, config: dict[str, Any]) -> None:
         """Update branch protection to match configuration."""
         branch = config["branch"]
         async with httpx.AsyncClient() as client:
@@ -177,12 +163,8 @@ class GitHubVerifier:
                 headers=self._headers,
                 json={
                     "required_pull_request_reviews": {
-                        "required_approving_review_count": config.get(
-                            "required_reviews", 1
-                        ),
-                        "dismiss_stale_reviews": config.get(
-                            "dismiss_stale_reviews", False
-                        ),
+                        "required_approving_review_count": config.get("required_reviews", 1),
+                        "dismiss_stale_reviews": config.get("dismiss_stale_reviews", False),
                     },
                     "enforce_admins": True,
                     "required_status_checks": None,
@@ -194,9 +176,7 @@ class GitHubVerifier:
     # Secrets
     # ------------------------------------------------------------------
 
-    async def check_secrets(
-        self, repo: str, expected: list[str]
-    ) -> list[CheckResult]:
+    async def check_secrets(self, repo: str, expected: list[str]) -> list[CheckResult]:
         """Check that all expected secrets are configured."""
         async with httpx.AsyncClient() as client:
             resp = await client.get(
