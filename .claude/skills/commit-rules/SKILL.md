@@ -120,32 +120,9 @@ refactor: ♻️ extract experiment validation logic ← refactor (tests still p
 
 ## Pull Request Rules
 
-### PR Title Format
+See `pr-rules` skill for full PR creation rules (merge strategy, labels, milestones, assignees).
 
-```
-<type>: <emoji> <subject>
-```
-
-- Max 70 characters
-- Same type/emoji rules as commit messages
-- Examples:
-  - `feat: ✨ add pseudopod task execution`
-  - `fix: 🐛 resolve experiment scheduling race condition`
-  - `chore: 🔧 add PR title validation`
-
-### PR Body
-
-- **Summary**: Describe changes in 1-3 sentences
-- **Changes**: List key changes
-- **Why**: Explain motivation
-- **Test Plan**: Verification steps as checklist
-- **Related**: Reference issues with `Closes #` / `Refs #`
-
-### General
-
-- All PRs must reference related issues when applicable
-- Test Plan must include verification steps
-- Summary section must not be empty
+PR titles follow the same format as commit messages (squash merge makes the title the final commit).
 
 ## Language
 
