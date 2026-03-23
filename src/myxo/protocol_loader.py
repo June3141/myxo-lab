@@ -40,7 +40,7 @@ def _parse_protocol_content(content: str) -> Protocol:
         raise ValueError("Protocol file missing closing frontmatter delimiter")
 
     yaml_text = rest[:closing_idx]
-    body = rest[closing_idx + 5:]  # skip "\n---\n"
+    body = rest[closing_idx + 5 :]  # skip "\n---\n"
 
     try:
         frontmatter = yaml.safe_load(yaml_text)
@@ -102,8 +102,4 @@ def validate_protocol(content: str) -> bool:
     if not isinstance(protocol.frontmatter.get("triggers"), list):
         return False
 
-    for section in REQUIRED_BODY_SECTIONS:
-        if section not in protocol.body:
-            return False
-
-    return True
+    return all(section in protocol.body for section in REQUIRED_BODY_SECTIONS)

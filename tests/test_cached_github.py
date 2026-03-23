@@ -8,7 +8,6 @@ import pytest
 
 from myxo.cached_github import CachedGitHubMCP
 
-
 # --- init ---
 
 

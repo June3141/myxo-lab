@@ -16,35 +16,20 @@ def test_valid_rules_returns_no_errors() -> None:
 
 
 def test_non_bullet_line_is_rejected() -> None:
-    content = (
-        "# Rules\n"
-        "\n"
-        "This line is not a bullet point\n"
-    )
+    content = "# Rules\n\nThis line is not a bullet point\n"
     errors = validate_rules(content)
     assert len(errors) == 1
     assert "line 3" in errors[0].lower() or "3" in errors[0]
 
 
 def test_header_lines_are_allowed() -> None:
-    content = (
-        "# Rules\n"
-        "## Section\n"
-        "### Subsection\n"
-        "- A bullet item\n"
-    )
+    content = "# Rules\n## Section\n### Subsection\n- A bullet item\n"
     errors = validate_rules(content)
     assert errors == []
 
 
 def test_blank_lines_are_allowed() -> None:
-    content = (
-        "# Rules\n"
-        "\n"
-        "- Item one\n"
-        "\n"
-        "- Item two\n"
-    )
+    content = "# Rules\n\n- Item one\n\n- Item two\n"
     errors = validate_rules(content)
     assert errors == []
 
@@ -87,11 +72,7 @@ def test_line_exactly_120_chars_is_ok() -> None:
 
 def test_multiple_violations() -> None:
     long_line = "- " + "x" * 119  # too long
-    content = (
-        "# Rules\n"
-        "Not a bullet\n"
-        f"{long_line}\n"
-    )
+    content = f"# Rules\nNot a bullet\n{long_line}\n"
     errors = validate_rules(content)
     # Should have at least 2 errors: format + length
     assert len(errors) >= 2
@@ -116,10 +97,7 @@ def test_long_header_line_is_rejected() -> None:
 
 
 def test_indented_bullet_is_rejected() -> None:
-    content = (
-        "# Rules\n"
-        "  - indented item\n"
-    )
+    content = "# Rules\n  - indented item\n"
     errors = validate_rules(content)
     assert len(errors) == 1
     assert "must start with" in errors[0].lower() or "bullet" in errors[0].lower()

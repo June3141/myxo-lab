@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 MYXO_DIR = Path(__file__).parent.parent / ".myxo"
 
 

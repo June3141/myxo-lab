@@ -22,9 +22,7 @@ class SecureFilesystemMCP:
     ) -> None:
         self.allowed_patterns = tuple(allowed_patterns)
         self.blocked_patterns = tuple(blocked_patterns)
-        self.project_root: str | None = (
-            self._normalize(project_root) if project_root is not None else None
-        )
+        self.project_root: str | None = self._normalize(project_root) if project_root is not None else None
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -94,6 +92,4 @@ class SecureFilesystemMCP:
     def validate_access(self, path: str) -> None:
         """Raise :class:`PermissionError` if *path* is not accessible."""
         if not self.check_access(path):
-            raise PermissionError(
-                f"Access denied: '{path}' is not in the allowed file list"
-            )
+            raise PermissionError(f"Access denied: '{path}' is not in the allowed file list")

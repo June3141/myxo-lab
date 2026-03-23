@@ -30,10 +30,9 @@ class CachedGitHubMCP:
         (``None`` when the argument is omitted).  Expired entries are
         deleted from the internal store on access.
         """
-        entry = self._cache.get(key, self._MISSING)
-        if entry is self._MISSING:
+        if key not in self._cache:
             return default
-        timestamp, value = entry
+        timestamp, value = self._cache[key]
         if time.monotonic() - timestamp > self.ttl:
             del self._cache[key]
             return default
@@ -53,4 +52,5 @@ class CachedGitHubMCP:
 
     def is_cached(self, key: str) -> bool:
         """Return True if the key exists and has not expired."""
-        return self.get(key, self._MISSING) is not self._MISSING
+        sentinel = object()
+        return self.get(key, sentinel) is not sentinel

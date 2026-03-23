@@ -2,7 +2,6 @@
 
 from myxo.sanitizer import ContextSanitizer
 
-
 # --- AWS Access Key ---
 
 
@@ -34,9 +33,7 @@ def test_redacts_aws_secret_key() -> None:
 
 def test_has_secrets_detects_aws_secret_key() -> None:
     sanitizer = ContextSanitizer()
-    assert sanitizer.has_secrets(
-        "aws_secret_access_key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-    )
+    assert sanitizer.has_secrets("aws_secret_access_key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
 
 
 # --- Private Key ---

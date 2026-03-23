@@ -25,9 +25,7 @@ class ContextSanitizer:
         ),
         (
             "jwt",
-            re.compile(
-                r"eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"
-            ),
+            re.compile(r"eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"),
         ),
         (
             "github-token",
@@ -73,7 +71,8 @@ class ContextSanitizer:
             result = pattern.sub(f"[REDACTED:{label}]", result)
         for label, pattern in self._KEY_VALUE_PATTERNS:
             result = pattern.sub(
-                rf"\g<key>[REDACTED:{label}]", result,
+                rf"\g<key>[REDACTED:{label}]",
+                result,
             )
         return result
 

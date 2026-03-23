@@ -49,9 +49,7 @@ def test_protocol_has_required_frontmatter_keys(filename: str) -> None:
 
     protocol = load_protocol(PROTOCOLS_DIR / filename)
     for key in REQUIRED_FRONTMATTER_KEYS:
-        assert key in protocol.frontmatter, (
-            f"{filename} frontmatter must contain '{key}'"
-        )
+        assert key in protocol.frontmatter, f"{filename} frontmatter must contain '{key}'"
 
 
 @pytest.mark.parametrize("filename", EXPECTED_PROTOCOLS)
@@ -59,9 +57,7 @@ def test_protocol_triggers_is_list(filename: str) -> None:
     from myxo.protocol_loader import load_protocol
 
     protocol = load_protocol(PROTOCOLS_DIR / filename)
-    assert isinstance(protocol.frontmatter["triggers"], list), (
-        f"{filename} 'triggers' must be a list"
-    )
+    assert isinstance(protocol.frontmatter["triggers"], list), f"{filename} 'triggers' must be a list"
 
 
 @pytest.mark.parametrize("filename", EXPECTED_PROTOCOLS)
@@ -98,7 +94,8 @@ def test_load_protocol_returns_protocol_object(tmp_path: Path) -> None:
 
     proto_file = tmp_path / "test.md"
     proto_file.write_text(
-        "---\nname: test\ndescription: A test\ntriggers:\n  - test\n---\n\n## Steps\n1. Do something\n\n## Rules\n- A rule\n",
+        "---\nname: test\ndescription: A test\ntriggers:\n  - test\n---\n\n"
+        "## Steps\n1. Do something\n\n## Rules\n- A rule\n",
         encoding="utf-8",
     )
     result = load_protocol(proto_file)

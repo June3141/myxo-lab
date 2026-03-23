@@ -41,12 +41,8 @@ def test_sync_includes_rules_content(tmp_path: Path, monkeypatch) -> None:
 def test_sync_includes_protocol_files(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     myxo = _setup_myxo_dir(tmp_path)
-    (myxo / "protocols" / "code-review.md").write_text(
-        "# Code Review\nAlways review PRs.\n"
-    )
-    (myxo / "protocols" / "testing.md").write_text(
-        "# Testing\nWrite tests first.\n"
-    )
+    (myxo / "protocols" / "code-review.md").write_text("# Code Review\nAlways review PRs.\n")
+    (myxo / "protocols" / "testing.md").write_text("# Testing\nWrite tests first.\n")
     result = runner.invoke(app, ["sync"])
     assert result.exit_code == 0
     content = (tmp_path / "CLAUDE.md").read_text()
@@ -56,9 +52,7 @@ def test_sync_includes_protocol_files(tmp_path: Path, monkeypatch) -> None:
     assert "Write tests first." in content
 
 
-def test_sync_ignores_non_md_files_in_protocols(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_sync_ignores_non_md_files_in_protocols(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     myxo = _setup_myxo_dir(tmp_path)
     (myxo / "protocols" / "notes.txt").write_text("should not appear")

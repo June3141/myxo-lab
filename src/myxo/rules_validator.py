@@ -23,16 +23,12 @@ def validate_rules(content: str) -> list[str]:
         lines = lines[:-1]
 
     if len(lines) > MAX_LINES:
-        errors.append(
-            f"rules.md exceeds {MAX_LINES} lines (found {len(lines)})"
-        )
+        errors.append(f"rules.md exceeds {MAX_LINES} lines (found {len(lines)})")
 
     for i, line in enumerate(lines, start=1):
         # Check line length for ALL lines (including headers)
         if len(line) > MAX_LINE_LENGTH:
-            errors.append(
-                f"Line {i}: exceeds {MAX_LINE_LENGTH} characters (found {len(line)})"
-            )
+            errors.append(f"Line {i}: exceeds {MAX_LINE_LENGTH} characters (found {len(line)})")
 
         # Allow blank lines and header lines (no leading whitespace allowed)
         if line == "" or line.startswith("#"):
@@ -40,8 +36,6 @@ def validate_rules(content: str) -> list[str]:
 
         # Must be a bullet line (no leading whitespace allowed)
         if not line.startswith("- "):
-            errors.append(
-                f"Line {i}: must start with '- ' (bullet point), got: {line[:40]}"
-            )
+            errors.append(f"Line {i}: must start with '- ' (bullet point), got: {line[:40]}")
 
     return errors
