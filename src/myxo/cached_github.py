@@ -10,7 +10,8 @@ class CachedGitHubMCP:
     """TTL-based cache to reduce GitHub API calls.
 
     Stores values in a dict with timestamps. Expired entries are
-    returned as None (lazy expiration).
+    lazily evicted on the next :meth:`get` call and the caller-supplied
+    *default* (``None`` when omitted) is returned instead.
     """
 
     _MISSING = object()
@@ -23,7 +24,12 @@ class CachedGitHubMCP:
         self._cache: dict[str, tuple[float, Any]] = {}
 
     def get(self, key: str, default: Any = None) -> Any:
-        """Return cached value if present and not expired, else *default*."""
+        """Return cached value if present and not expired.
+
+        If the key is missing or its TTL has expired, return *default*
+        (``None`` when the argument is omitted).  Expired entries are
+        deleted from the internal store on access.
+        """
         entry = self._cache.get(key, self._MISSING)
         if entry is self._MISSING:
             return default
