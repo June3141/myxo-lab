@@ -33,7 +33,11 @@ class Converter(abc.ABC):
 
 
 class ClaudeConverter(Converter):
-    """Generates CLAUDE.md for Claude Code."""
+    """Generates CLAUDE.md for Claude Code.
+
+    TODO(#8): Support generating .claude/agents/ directory structure.
+    The concrete layout for agent definitions is not yet finalized.
+    """
 
     @property
     def name(self) -> str:
@@ -93,12 +97,17 @@ class MyxoSyncer:
         self._myxo_dir = myxo_dir
 
     def collect(self) -> str:
-        """Collect and concatenate content from .myxo/ directory."""
+        """Collect and concatenate content from .myxo/ directory.
+
+        Raises:
+            FileNotFoundError: If rules.md does not exist in the .myxo/ directory.
+        """
         parts: list[str] = []
 
         rules_path = self._myxo_dir / "rules.md"
-        if rules_path.is_file():
-            parts.append(rules_path.read_text(encoding="utf-8"))
+        if not rules_path.is_file():
+            raise FileNotFoundError(f"Required file not found: {rules_path}")
+        parts.append(rules_path.read_text(encoding="utf-8"))
 
         protocols_dir = self._myxo_dir / "protocols"
         if protocols_dir.is_dir():

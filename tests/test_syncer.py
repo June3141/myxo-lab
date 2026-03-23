@@ -69,6 +69,18 @@ def test_syncer_sync_specific_target(tmp_path: Path, monkeypatch: pytest.MonkeyP
     assert not (tmp_path / ".windsurfrules").exists()
 
 
+def test_syncer_collect_raises_on_missing_rules_md(tmp_path: Path) -> None:
+    """collect() raises FileNotFoundError when rules.md is missing."""
+    from myxo.syncer import MyxoSyncer
+
+    myxo = tmp_path / ".myxo"
+    myxo.mkdir()
+    # No rules.md created
+    syncer = MyxoSyncer(myxo)
+    with pytest.raises(FileNotFoundError, match="rules.md"):
+        syncer.collect()
+
+
 def test_syncer_raises_on_unknown_target(tmp_path: Path) -> None:
     """sync() with unknown target raises ValueError."""
     from myxo.syncer import MyxoSyncer
