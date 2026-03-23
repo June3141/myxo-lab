@@ -13,20 +13,24 @@ class CachedGitHubMCP:
     returned as None (lazy expiration).
     """
 
+    _MISSING = object()
+
     def __init__(self, ttl: int = 300) -> None:
         """Initialize cache with TTL in seconds."""
+        if ttl <= 0:
+            raise ValueError(f"ttl must be positive, got {ttl}")
         self.ttl = ttl
         self._cache: dict[str, tuple[float, Any]] = {}
 
-    def get(self, key: str) -> Any | None:
-        """Return cached value if present and not expired, else None."""
-        entry = self._cache.get(key)
-        if entry is None:
-            return None
+    def get(self, key: str, default: Any = None) -> Any:
+        """Return cached value if present and not expired, else *default*."""
+        entry = self._cache.get(key, self._MISSING)
+        if entry is self._MISSING:
+            return default
         timestamp, value = entry
         if time.monotonic() - timestamp > self.ttl:
             del self._cache[key]
-            return None
+            return default
         return value
 
     def set(self, key: str, value: Any) -> None:
@@ -43,4 +47,4 @@ class CachedGitHubMCP:
 
     def is_cached(self, key: str) -> bool:
         """Return True if the key exists and has not expired."""
-        return self.get(key) is not None
+        return self.get(key, self._MISSING) is not self._MISSING
