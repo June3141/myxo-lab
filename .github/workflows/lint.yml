@@ -10,6 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
       - run: uv run ruff check src/ tests/
       - run: uv run ruff format --check src/ tests/
 
@@ -18,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
       - run: uv run ty check src/
 
   test:
@@ -25,4 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
       - run: uv run pytest

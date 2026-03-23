@@ -30,12 +30,9 @@ class CachedGitHubMCP:
         (``None`` when the argument is omitted).  Expired entries are
         deleted from the internal store on access.
         """
-        raw = self._cache.get(key)
-        if raw is None and key not in self._cache:
+        if key not in self._cache:
             return default
-        if raw is None:
-            return raw
-        timestamp, value = raw
+        timestamp, value = self._cache[key]
         if time.monotonic() - timestamp > self.ttl:
             del self._cache[key]
             return default
