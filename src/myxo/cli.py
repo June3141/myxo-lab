@@ -1,8 +1,18 @@
 """Myxo CLI — uv + typer entrypoint."""
 
+from __future__ import annotations
+
+import asyncio
+import os
 from pathlib import Path
+from typing import Optional
 
 import typer
+import yaml
+from rich.console import Console
+from rich.table import Table
+
+from myxo.verifier import CheckResult, GitHubVerifier
 
 app = typer.Typer(
     name="myxo",
@@ -69,7 +79,76 @@ def sync() -> None:
     typer.echo(f"CLAUDE.md generated ({output})")
 
 
+def _create_verifier() -> GitHubVerifier:
+    """Create a GitHubVerifier with the token from the environment."""
+    token = os.environ.get("GITHUB_TOKEN", "")
+    return GitHubVerifier(token=token)
+
+
+def _render_results(results: list[CheckResult], console: Console) -> None:
+    """Render check results as a Rich table."""
+    table = Table(title="myxo verify")
+    table.add_column("Check", style="bold")
+    table.add_column("Status")
+    table.add_column("Message")
+
+    status_style = {"ok": "green", "fail": "red", "warn": "yellow"}
+
+    for r in results:
+        style = status_style.get(r.status, "")
+        table.add_row(r.name, f"[{style}]{r.status}[/{style}]", r.message)
+
+    console.print(table)
+
+
+def _run_verify(fix: bool = False) -> int:
+    """Run all verification checks. Returns 0 if all ok, 1 otherwise."""
+    myxo_dir = Path.cwd() / ".myxo"
+    config_path = myxo_dir / "config.yaml"
+
+    config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    gh_config = config.get("github", {})
+    repo = gh_config.get("repo", "")
+
+    verifier = _create_verifier()
+    all_results: list[CheckResult] = []
+
+    # Run checks
+    labels_cfg = gh_config.get("labels", [])
+    bp_cfg = gh_config.get("branch_protection", {})
+    secrets_cfg = gh_config.get("secrets", [])
+
+    all_results.extend(asyncio.run(verifier.check_labels(repo, labels_cfg)))
+    if bp_cfg:
+        all_results.extend(asyncio.run(verifier.check_branch_protection(repo, bp_cfg)))
+    all_results.extend(asyncio.run(verifier.check_secrets(repo, secrets_cfg)))
+
+    console = Console()
+    _render_results(all_results, console)
+
+    has_failures = any(r.status == "fail" for r in all_results)
+
+    if fix and has_failures:
+        label_failures = [r for r in all_results if r.name.startswith("label:") and r.status == "fail"]
+        if label_failures:
+            asyncio.run(verifier.fix_labels(repo, labels_cfg))
+        bp_failures = [r for r in all_results if r.name.startswith("branch_protection:") and r.status == "fail"]
+        if bp_failures and bp_cfg:
+            asyncio.run(verifier.fix_branch_protection(repo, bp_cfg))
+
+    return 1 if has_failures else 0
+
+
 @app.command()
-def verify() -> None:
+def verify(
+    fix: bool = typer.Option(False, "--fix", help="Automatically fix issues"),
+) -> None:
     """Verify GitHub settings match .myxo/ configuration."""
-    typer.echo("myxo verify: not yet implemented")
+    myxo_dir = Path.cwd() / ".myxo"
+
+    if not myxo_dir.is_dir():
+        typer.echo("Error: .myxo/ directory not found. Run `myxo init` first.")
+        raise typer.Exit(code=1)
+
+    exit_code = _run_verify(fix=fix)
+    raise typer.Exit(code=exit_code)
