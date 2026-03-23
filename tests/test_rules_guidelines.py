@@ -106,3 +106,20 @@ def test_only_headers_and_blanks() -> None:
     content = "# Rules\n\n## Section\n\n"
     errors = validate_rules(content)
     assert errors == []
+
+
+def test_long_header_line_is_rejected() -> None:
+    long_header = "# " + "A" * 119  # 121 chars total
+    content = f"{long_header}\n- A bullet item\n"
+    errors = validate_rules(content)
+    assert any("120" in e for e in errors)
+
+
+def test_indented_bullet_is_rejected() -> None:
+    content = (
+        "# Rules\n"
+        "  - indented item\n"
+    )
+    errors = validate_rules(content)
+    assert len(errors) == 1
+    assert "must start with" in errors[0].lower() or "bullet" in errors[0].lower()

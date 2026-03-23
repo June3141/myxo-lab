@@ -28,21 +28,20 @@ def validate_rules(content: str) -> list[str]:
         )
 
     for i, line in enumerate(lines, start=1):
-        stripped = line.strip()
-
-        # Allow blank lines and header lines
-        if stripped == "" or stripped.startswith("#"):
-            continue
-
-        # Must be a bullet line
-        if not stripped.startswith("- "):
-            errors.append(
-                f"Line {i}: must start with '- ' (bullet point), got: {stripped[:40]}"
-            )
-
+        # Check line length for ALL lines (including headers)
         if len(line) > MAX_LINE_LENGTH:
             errors.append(
                 f"Line {i}: exceeds {MAX_LINE_LENGTH} characters (found {len(line)})"
+            )
+
+        # Allow blank lines and header lines (no leading whitespace allowed)
+        if line == "" or line.startswith("#"):
+            continue
+
+        # Must be a bullet line (no leading whitespace allowed)
+        if not line.startswith("- "):
+            errors.append(
+                f"Line {i}: must start with '- ' (bullet point), got: {line[:40]}"
             )
 
     return errors

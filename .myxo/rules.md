@@ -1,4 +1,4 @@
-# Rules
+# Myxo Rules
 
 ## Code Review
 - DB schema changes require researcher-review
