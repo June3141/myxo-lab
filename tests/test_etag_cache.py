@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from myxo.etag_cache import ETagCache
 
-
 # --- init ---
 
 

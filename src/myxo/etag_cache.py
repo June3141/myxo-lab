@@ -21,9 +21,7 @@ class ETagCache:
         """Return the stored ETag for *url*, or ``None`` if not cached."""
         return self._etags.get(url)
 
-    def build_headers(
-        self, url: str, extra_headers: dict[str, str] | None = None
-    ) -> dict[str, str]:
+    def build_headers(self, url: str, extra_headers: dict[str, str] | None = None) -> dict[str, str]:
         """Build request headers, adding ``If-None-Match`` when an ETag is cached.
 
         Parameters
