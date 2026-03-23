@@ -170,11 +170,17 @@ def test_validate_error_message_contains_path(mcp: SecureFilesystemMCP) -> None:
 
 
 def test_stores_allowed_patterns(mcp: SecureFilesystemMCP) -> None:
-    assert mcp.allowed_patterns == ALLOWED_PATTERNS
+    assert list(mcp.allowed_patterns) == ALLOWED_PATTERNS
 
 
 def test_stores_blocked_patterns(mcp: SecureFilesystemMCP) -> None:
-    assert mcp.blocked_patterns == BLOCKED_PATTERNS
+    assert list(mcp.blocked_patterns) == BLOCKED_PATTERNS
+
+
+def test_patterns_are_tuples(mcp: SecureFilesystemMCP) -> None:
+    """Patterns should be stored as tuples (defensive copy)."""
+    assert isinstance(mcp.allowed_patterns, tuple)
+    assert isinstance(mcp.blocked_patterns, tuple)
 
 
 def test_empty_patterns() -> None:
@@ -211,13 +217,24 @@ def test_mixed_separators(mcp: SecureFilesystemMCP) -> None:
     assert mcp.check_access("src\\myxo/module.py") is True
 
 
-def test_absolute_posix_path_allowed(mcp: SecureFilesystemMCP) -> None:
-    """Absolute POSIX path containing an allowed subtree."""
+def test_absolute_posix_path_rejected_without_project_root(
+    mcp: SecureFilesystemMCP,
+) -> None:
+    """Absolute POSIX path should be rejected when no project_root is set."""
     fs = SecureFilesystemMCP(
         allowed_patterns=["src/**"],
         blocked_patterns=[],
     )
-    # Absolute path — the 'src' component still appears, so sub-path matching works
+    assert fs.check_access("/home/user/project/src/main.py") is False
+
+
+def test_absolute_posix_path_allowed_with_project_root() -> None:
+    """Absolute POSIX path allowed when within project_root."""
+    fs = SecureFilesystemMCP(
+        allowed_patterns=["src/**"],
+        blocked_patterns=[],
+        project_root="/home/user/project",
+    )
     assert fs.check_access("/home/user/project/src/main.py") is True
 
 
@@ -242,3 +259,76 @@ def test_broad_glob_does_not_bypass_blocked_pem(mcp: SecureFilesystemMCP) -> Non
 def test_broad_glob_does_not_bypass_blocked_key(mcp: SecureFilesystemMCP) -> None:
     """Even deeply nested .key files must be blocked."""
     assert mcp.check_access("tests/fixtures/server.key") is False
+
+
+# ===== project_root constraint =====
+
+
+def test_project_root_rejects_path_outside() -> None:
+    """Paths outside the project_root must be rejected."""
+    fs = SecureFilesystemMCP(
+        allowed_patterns=["*.py"],
+        blocked_patterns=[],
+        project_root="/home/user/project",
+    )
+    assert fs.check_access("/etc/evil.py") is False
+
+
+def test_project_root_allows_relative_path() -> None:
+    """Relative paths are resolved against project_root and allowed."""
+    fs = SecureFilesystemMCP(
+        allowed_patterns=["*.py"],
+        blocked_patterns=[],
+        project_root="/home/user/project",
+    )
+    assert fs.check_access("main.py") is True
+
+
+def test_project_root_rejects_absolute_outside() -> None:
+    """Absolute path outside project_root should be rejected even if pattern matches."""
+    fs = SecureFilesystemMCP(
+        allowed_patterns=["**/*.py"],
+        blocked_patterns=[],
+        project_root="/home/user/project",
+    )
+    assert fs.check_access("/tmp/hack.py") is False
+
+
+def test_etc_evil_py_rejected_without_project_root() -> None:
+    """/etc/evil.py must be rejected — absolute path without project_root."""
+    fs = SecureFilesystemMCP(
+        allowed_patterns=["*.py"],
+        blocked_patterns=[],
+    )
+    assert fs.check_access("/etc/evil.py") is False
+
+
+def test_etc_evil_py_rejected_with_project_root() -> None:
+    """/etc/evil.py must be rejected — outside project_root."""
+    fs = SecureFilesystemMCP(
+        allowed_patterns=["*.py"],
+        blocked_patterns=[],
+        project_root="/home/user/project",
+    )
+    assert fs.check_access("/etc/evil.py") is False
+
+
+# ===== defensive copy =====
+
+
+def test_defensive_copy_allowed_patterns() -> None:
+    """Mutating the original list after construction must not affect the guard."""
+    allowed = ["*.py"]
+    fs = SecureFilesystemMCP(allowed_patterns=allowed, blocked_patterns=[])
+    allowed.append("*.sh")
+    # *.sh was added after construction — should NOT be allowed
+    assert fs.check_access("script.sh") is False
+
+
+def test_defensive_copy_blocked_patterns() -> None:
+    """Mutating the original blocked list after construction must not affect the guard."""
+    blocked = ["*.key"]
+    fs = SecureFilesystemMCP(allowed_patterns=["*"], blocked_patterns=blocked)
+    blocked.clear()
+    # *.key was in blocked at construction — should still be blocked
+    assert fs.check_access("private.key") is False

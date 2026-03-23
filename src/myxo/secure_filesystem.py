@@ -18,9 +18,13 @@ class SecureFilesystemMCP:
         self,
         allowed_patterns: list[str],
         blocked_patterns: list[str],
+        project_root: str | None = None,
     ) -> None:
-        self.allowed_patterns = allowed_patterns
-        self.blocked_patterns = blocked_patterns
+        self.allowed_patterns = tuple(allowed_patterns)
+        self.blocked_patterns = tuple(blocked_patterns)
+        self.project_root: str | None = (
+            self._normalize(project_root) if project_root is not None else None
+        )
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -31,7 +35,20 @@ class SecureFilesystemMCP:
         """Normalize backslashes to forward slashes for cross-platform support."""
         return path.replace("\\", "/")
 
-    def _matches_any(self, path: str, patterns: list[str]) -> bool:
+    def _is_within_project_root(self, path: str) -> bool:
+        """Return True if *path* is under the project root (when set)."""
+        if self.project_root is None:
+            return True
+        path = self._normalize(path)
+        # Resolve to absolute using project_root as base for relative paths
+        pure = PurePosixPath(path)
+        if not pure.is_absolute():
+            path = str(PurePosixPath(self.project_root) / path)
+        # Ensure the path starts with project_root
+        root = self.project_root.rstrip("/")
+        return path == root or path.startswith(root + "/")
+
+    def _matches_any(self, path: str, patterns: tuple[str, ...]) -> bool:
         """Return True if *path* matches at least one of *patterns*.
 
         Matching is performed against both the full path string and every
@@ -64,6 +81,12 @@ class SecureFilesystemMCP:
     def check_access(self, path: str) -> bool:
         """Return ``True`` if *path* is accessible, ``False`` otherwise."""
         path = self._normalize(path)
+        # Reject absolute paths when no project_root is configured
+        if self.project_root is None and PurePosixPath(path).is_absolute():
+            return False
+        # Reject paths outside the project root
+        if not self._is_within_project_root(path):
+            return False
         if self._matches_any(path, self.blocked_patterns):
             return False
         return self._matches_any(path, self.allowed_patterns)
