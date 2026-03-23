@@ -35,7 +35,7 @@ def load_protocol(path: Path) -> Protocol:
     if not path.exists():
         raise FileNotFoundError(f"Protocol file not found: {path}")
 
-    content = path.read_text()
+    content = path.read_text(encoding="utf-8")
 
     if not content.startswith("---\n"):
         raise ValueError(f"Protocol file missing YAML frontmatter: {path}")
@@ -48,7 +48,10 @@ def load_protocol(path: Path) -> Protocol:
     yaml_text = rest[:closing_idx]
     body = rest[closing_idx + 5:]  # skip "\n---\n"
 
-    frontmatter = yaml.safe_load(yaml_text)
+    try:
+        frontmatter = yaml.safe_load(yaml_text)
+    except yaml.YAMLError as exc:
+        raise ValueError(f"Invalid YAML frontmatter in {path}: {exc}") from exc
     if not isinstance(frontmatter, dict):
         frontmatter = {}
 
