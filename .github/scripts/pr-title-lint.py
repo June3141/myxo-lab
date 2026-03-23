@@ -2,7 +2,7 @@
 """Validate PR title matches the gitmoji commit format.
 
 Usage: pr-title-lint.py "<title>"
-Exit 0 on valid, 1 on invalid.
+Exit codes: 0 on valid, 1 on invalid title, 2 on usage/argument error.
 """
 
 import re
@@ -23,7 +23,7 @@ _emoji_pattern = "|".join(re.escape(e) for e in _emojis)
 
 # Pattern: <type>: <emoji> <lowercase subject, no trailing period>
 TITLE_RE = re.compile(
-    rf"^(?:{'|'.join(TYPES)}): (?:{_emoji_pattern}) [a-z].*[^.]$"
+    rf"^(?:{'|'.join(TYPES)}): (?:{_emoji_pattern}) [a-z].*(?<!\.)$"
 )
 
 MAX_LENGTH = 70

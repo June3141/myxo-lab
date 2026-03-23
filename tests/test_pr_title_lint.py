@@ -45,6 +45,11 @@ def test_valid_refactor_title():
     assert result.returncode == 0
 
 
+def test_valid_min_length_subject():
+    result = _run("feat: ✨ a")
+    assert result.returncode == 0
+
+
 def test_reject_missing_emoji():
     result = _run("feat: add something")
     assert result.returncode == 1
