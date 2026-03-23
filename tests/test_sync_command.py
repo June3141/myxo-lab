@@ -20,104 +20,85 @@ def _setup_myxo_dir(base: Path) -> Path:
     return myxo
 
 
-class TestSyncGeneratesCLAUDEmd:
-    """myxo sync should generate CLAUDE.md from .myxo/rules.md."""
-
-    def test_sync_creates_claude_md(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-
-        result = runner.invoke(app, ["sync"])
-
-        assert result.exit_code == 0
-        claude_md = tmp_path / "CLAUDE.md"
-        assert claude_md.exists()
-
-    def test_sync_includes_rules_content(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-
-        result = runner.invoke(app, ["sync"])
-
-        assert result.exit_code == 0
-        content = (tmp_path / "CLAUDE.md").read_text()
-        assert "# Project Rules" in content
-        assert "Be nice." in content
+def test_sync_creates_claude_md(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 0
+    assert (tmp_path / "CLAUDE.md").exists()
 
 
-class TestSyncIncludesProtocols:
-    """myxo sync should include .md files from .myxo/protocols/."""
-
-    def test_sync_includes_protocol_files(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
-        myxo = _setup_myxo_dir(tmp_path)
-        (myxo / "protocols" / "code-review.md").write_text(
-            "# Code Review\nAlways review PRs.\n"
-        )
-        (myxo / "protocols" / "testing.md").write_text(
-            "# Testing\nWrite tests first.\n"
-        )
-
-        result = runner.invoke(app, ["sync"])
-
-        assert result.exit_code == 0
-        content = (tmp_path / "CLAUDE.md").read_text()
-        assert "# Code Review" in content
-        assert "Always review PRs." in content
-        assert "# Testing" in content
-        assert "Write tests first." in content
-
-    def test_sync_ignores_non_md_files_in_protocols(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
-        monkeypatch.chdir(tmp_path)
-        myxo = _setup_myxo_dir(tmp_path)
-        (myxo / "protocols" / "notes.txt").write_text("should not appear")
-
-        result = runner.invoke(app, ["sync"])
-
-        assert result.exit_code == 0
-        content = (tmp_path / "CLAUDE.md").read_text()
-        assert "should not appear" not in content
-
-    def test_sync_works_without_protocols_dir(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
-        monkeypatch.chdir(tmp_path)
-        myxo = tmp_path / ".myxo"
-        myxo.mkdir()
-        (myxo / "rules.md").write_text("# Rules\n")
-        # No protocols/ directory at all
-
-        result = runner.invoke(app, ["sync"])
-
-        assert result.exit_code == 0
-        assert (tmp_path / "CLAUDE.md").exists()
+def test_sync_includes_rules_content(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 0
+    content = (tmp_path / "CLAUDE.md").read_text()
+    assert "# Project Rules" in content
+    assert "Be nice." in content
 
 
-class TestSyncFailsWithoutMyxoDir:
-    """myxo sync should fail if .myxo/ doesn't exist."""
+def test_sync_includes_protocol_files(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    myxo = _setup_myxo_dir(tmp_path)
+    (myxo / "protocols" / "code-review.md").write_text(
+        "# Code Review\nAlways review PRs.\n"
+    )
+    (myxo / "protocols" / "testing.md").write_text(
+        "# Testing\nWrite tests first.\n"
+    )
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 0
+    content = (tmp_path / "CLAUDE.md").read_text()
+    assert "# Code Review" in content
+    assert "Always review PRs." in content
+    assert "# Testing" in content
+    assert "Write tests first." in content
 
-    def test_sync_exits_with_error(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
 
-        result = runner.invoke(app, ["sync"])
+def test_sync_ignores_non_md_files_in_protocols(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    myxo = _setup_myxo_dir(tmp_path)
+    (myxo / "protocols" / "notes.txt").write_text("should not appear")
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 0
+    content = (tmp_path / "CLAUDE.md").read_text()
+    assert "should not appear" not in content
 
-        assert result.exit_code == 1
-        assert ".myxo" in result.output
+
+def test_sync_works_without_protocols_dir(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    myxo = tmp_path / ".myxo"
+    myxo.mkdir()
+    (myxo / "rules.md").write_text("# Rules\n")
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 0
+    assert (tmp_path / "CLAUDE.md").exists()
 
 
-class TestSyncAutoGeneratedHeader:
-    """Generated CLAUDE.md should have the auto-generated header comment."""
+def test_sync_fails_without_myxo_dir(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 1
+    assert ".myxo" in result.output
 
-    def test_claude_md_starts_with_header(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
 
-        result = runner.invoke(app, ["sync"])
+def test_sync_fails_without_rules_md(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    myxo = tmp_path / ".myxo"
+    myxo.mkdir()
+    # No rules.md
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 1
+    assert "rules.md" in result.output
 
-        assert result.exit_code == 0
-        content = (tmp_path / "CLAUDE.md").read_text()
-        assert content.startswith(AUTOGEN_HEADER)
+
+def test_claude_md_starts_with_header(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 0
+    content = (tmp_path / "CLAUDE.md").read_text()
+    assert content.startswith(AUTOGEN_HEADER)
