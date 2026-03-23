@@ -28,6 +28,8 @@ def test_redacts_aws_secret_key() -> None:
     result = sanitizer.sanitize(text)
     assert "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" not in result
     assert "[REDACTED:aws-secret-key]" in result
+    # Key name must be preserved
+    assert "aws_secret_access_key = " in result
 
 
 def test_has_secrets_detects_aws_secret_key() -> None:
@@ -97,6 +99,8 @@ def test_redacts_password_single_quotes() -> None:
     result = sanitizer.sanitize(text)
     assert "super_secret_123" not in result
     assert "[REDACTED:password]" in result
+    # Key name must be preserved
+    assert result.startswith("password = ")
 
 
 def test_redacts_password_double_quotes() -> None:
@@ -105,6 +109,7 @@ def test_redacts_password_double_quotes() -> None:
     result = sanitizer.sanitize(text)
     assert "my-database-pw!" not in result
     assert "[REDACTED:password]" in result
+    assert result.startswith("password = ")
 
 
 def test_redacts_password_no_spaces() -> None:
@@ -113,6 +118,7 @@ def test_redacts_password_no_spaces() -> None:
     result = sanitizer.sanitize(text)
     assert "compact_secret" not in result
     assert "[REDACTED:password]" in result
+    assert result.startswith("password=")
 
 
 def test_password_word_boundary_no_false_positive() -> None:
@@ -140,6 +146,73 @@ def test_redacts_github_server_token() -> None:
     result = sanitizer.sanitize(text)
     assert "ghs_1234567890abcdefghijklmnopqrstuvwxyz" not in result
     assert "[REDACTED:github-token]" in result
+
+
+def test_redacts_github_fine_grained_pat() -> None:
+    sanitizer = ContextSanitizer()
+    text = "token=github_pat_ABCDEF1234567890ABCDEF12_abcdefghijklmnopqrstuvwxyz1234567890ABCDEF1234567890abcdefgh"
+    result = sanitizer.sanitize(text)
+    assert "github_pat_" not in result
+    assert "[REDACTED:github-token]" in result
+
+
+def test_redacts_github_oauth_token() -> None:
+    sanitizer = ContextSanitizer()
+    text = "token: gho_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkl"
+    result = sanitizer.sanitize(text)
+    assert "gho_" not in result
+    assert "[REDACTED:github-token]" in result
+
+
+def test_redacts_github_user_token() -> None:
+    sanitizer = ContextSanitizer()
+    text = "token: ghu_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkl"
+    result = sanitizer.sanitize(text)
+    assert "ghu_" not in result
+    assert "[REDACTED:github-token]" in result
+
+
+# --- Generic API Key ---
+
+
+def test_redacts_api_key_double_quotes() -> None:
+    sanitizer = ContextSanitizer()
+    text = 'api_key = "sk-abc123xyz"'
+    result = sanitizer.sanitize(text)
+    assert "sk-abc123xyz" not in result
+    assert "[REDACTED:api-key]" in result
+    assert result.startswith("api_key = ")
+
+
+def test_redacts_api_secret_colon() -> None:
+    sanitizer = ContextSanitizer()
+    text = "api_secret: my_super_secret_value"
+    result = sanitizer.sanitize(text)
+    assert "my_super_secret_value" not in result
+    assert "[REDACTED:api-key]" in result
+    assert result.startswith("api_secret: ")
+
+
+def test_redacts_apikey_no_separator() -> None:
+    sanitizer = ContextSanitizer()
+    text = "apikey='tok_live_12345'"
+    result = sanitizer.sanitize(text)
+    assert "tok_live_12345" not in result
+    assert "[REDACTED:api-key]" in result
+    assert result.startswith("apikey=")
+
+
+def test_redacts_api_key_case_insensitive() -> None:
+    sanitizer = ContextSanitizer()
+    text = 'API_KEY = "SECRETVALUE"'
+    result = sanitizer.sanitize(text)
+    assert "SECRETVALUE" not in result
+    assert "[REDACTED:api-key]" in result
+
+
+def test_has_secrets_detects_api_key() -> None:
+    sanitizer = ContextSanitizer()
+    assert sanitizer.has_secrets("api_key=something")
 
 
 # --- Clean text passthrough ---
