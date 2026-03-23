@@ -44,7 +44,9 @@ class PromptCacheManager:
         result = copy.deepcopy(messages)
 
         for msg in result:
-            content = msg["content"]
+            content = msg.get("content")
+            if content is None:
+                continue
 
             if isinstance(content, str):
                 if self.is_cacheable(content):
@@ -58,6 +60,8 @@ class PromptCacheManager:
                     ]
             elif isinstance(content, list):
                 for block in content:
+                    if not isinstance(block, dict):
+                        continue
                     if block.get("type") == "text" and self.is_cacheable(block.get("text", "")):
                         self._track(block["text"])
                         block["cache_control"] = {"type": "ephemeral"}
