@@ -16,7 +16,11 @@ def validate_rules(content: str) -> list[str]:
         return []
 
     errors: list[str] = []
-    lines = content.strip().split("\n")
+    lines = content.split("\n")
+
+    # Remove trailing empty line caused by final newline
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
 
     if len(lines) > MAX_LINES:
         errors.append(
