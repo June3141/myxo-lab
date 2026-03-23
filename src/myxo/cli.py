@@ -20,6 +20,12 @@ def init() -> None:
     myxo_dir = Path.cwd() / ".myxo"
 
     if myxo_dir.exists():
+        if not myxo_dir.is_dir():
+            typer.echo(
+                ".myxo exists but is not a directory. "
+                "Please remove or rename it before running `myxo init`."
+            )
+            raise typer.Exit(code=1)
         typer.echo(".myxo/ already exists — skipping initialization.")
         return
 
