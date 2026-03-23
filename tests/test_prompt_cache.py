@@ -4,7 +4,6 @@ import pytest
 
 from myxo.prompt_cache import PromptCacheManager
 
-
 # --- Initialization ---
 
 

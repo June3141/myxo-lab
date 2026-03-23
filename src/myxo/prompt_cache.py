@@ -74,11 +74,7 @@ class PromptCacheManager:
             "cache_hits": self._cache_hits,
             "cache_misses": self._cache_misses,
             "total_requests": self._total_requests,
-            "hit_rate": (
-                self._cache_hits / self._total_requests
-                if self._total_requests > 0
-                else 0.0
-            ),
+            "hit_rate": (self._cache_hits / self._total_requests if self._total_requests > 0 else 0.0),
         }
 
     def _track(self, content: str) -> None:
