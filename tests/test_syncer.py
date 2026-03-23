@@ -28,59 +28,59 @@ def _setup_myxo_dir(base: Path) -> Path:
 # ---------------------------------------------------------------------------
 
 
-class TestMyxoSyncer:
-    """Tests for MyxoSyncer class."""
+def test_syncer_collects_content_from_myxo_dir(tmp_path: Path) -> None:
+    """Syncer reads rules.md and protocols/*.md."""
+    from myxo.syncer import MyxoSyncer
 
-    def test_syncer_collects_content_from_myxo_dir(self, tmp_path: Path) -> None:
-        """Syncer reads rules.md and protocols/*.md."""
-        from myxo.syncer import MyxoSyncer
+    myxo = _setup_myxo_dir(tmp_path)
+    syncer = MyxoSyncer(myxo)
+    content = syncer.collect()
+    assert "# Project Rules" in content
+    assert "# Code Review" in content
 
-        myxo = _setup_myxo_dir(tmp_path)
-        syncer = MyxoSyncer(myxo)
-        content = syncer.collect()
-        assert "# Project Rules" in content
-        assert "# Code Review" in content
 
-    def test_syncer_sync_all_creates_all_targets(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
-        """sync_all() generates files for every registered target."""
-        from myxo.syncer import MyxoSyncer
+def test_syncer_sync_all_creates_all_targets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """sync_all() generates files for every registered target."""
+    from myxo.syncer import MyxoSyncer
 
-        monkeypatch.chdir(tmp_path)
-        myxo = _setup_myxo_dir(tmp_path)
-        syncer = MyxoSyncer(myxo)
-        syncer.sync_all(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    myxo = _setup_myxo_dir(tmp_path)
+    syncer = MyxoSyncer(myxo)
+    syncer.sync_all(tmp_path)
 
-        assert (tmp_path / "CLAUDE.md").exists()
-        assert (tmp_path / "AGENTS.md").exists()
-        assert (tmp_path / ".cursor" / "rules").exists()
-        assert (tmp_path / ".windsurfrules").exists()
+    assert (tmp_path / "CLAUDE.md").exists()
+    assert (tmp_path / "AGENTS.md").exists()
+    assert (tmp_path / ".cursor" / "rules").exists()
+    assert (tmp_path / ".windsurfrules").exists()
 
-    def test_syncer_sync_specific_target(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
-        """sync() with a target name generates only that target."""
-        from myxo.syncer import MyxoSyncer
 
-        monkeypatch.chdir(tmp_path)
-        myxo = _setup_myxo_dir(tmp_path)
-        syncer = MyxoSyncer(myxo)
-        syncer.sync(tmp_path, target="codex")
+def test_syncer_sync_specific_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """sync() with a target name generates only that target."""
+    from myxo.syncer import MyxoSyncer
 
-        assert (tmp_path / "AGENTS.md").exists()
-        assert not (tmp_path / "CLAUDE.md").exists()
-        assert not (tmp_path / ".cursor" / "rules").exists()
-        assert not (tmp_path / ".windsurfrules").exists()
+    monkeypatch.chdir(tmp_path)
+    myxo = _setup_myxo_dir(tmp_path)
+    syncer = MyxoSyncer(myxo)
+    syncer.sync(tmp_path, target="codex")
 
-    def test_syncer_raises_on_unknown_target(self, tmp_path: Path) -> None:
-        """sync() with unknown target raises ValueError."""
-        from myxo.syncer import MyxoSyncer
+    assert (tmp_path / "AGENTS.md").exists()
+    assert not (tmp_path / "CLAUDE.md").exists()
+    assert not (tmp_path / ".cursor" / "rules").exists()
+    assert not (tmp_path / ".windsurfrules").exists()
 
-        myxo = _setup_myxo_dir(tmp_path)
-        syncer = MyxoSyncer(myxo)
-        with pytest.raises(ValueError, match="Unknown target"):
-            syncer.sync(tmp_path, target="unknown")
+
+def test_syncer_raises_on_unknown_target(tmp_path: Path) -> None:
+    """sync() with unknown target raises ValueError."""
+    from myxo.syncer import MyxoSyncer
+
+    myxo = _setup_myxo_dir(tmp_path)
+    syncer = MyxoSyncer(myxo)
+    with pytest.raises(ValueError, match="Unknown target"):
+        syncer.sync(tmp_path, target="unknown")
 
 
 # ---------------------------------------------------------------------------
@@ -88,89 +88,80 @@ class TestMyxoSyncer:
 # ---------------------------------------------------------------------------
 
 
-class TestClaudeConverter:
-    """Tests for ClaudeConverter."""
+def test_claude_converter_output_path(tmp_path: Path) -> None:
+    from myxo.syncer import ClaudeConverter
 
-    def test_output_path(self, tmp_path: Path) -> None:
-        from myxo.syncer import ClaudeConverter
-
-        conv = ClaudeConverter()
-        assert conv.output_path(tmp_path) == tmp_path / "CLAUDE.md"
-
-    def test_convert_includes_header_and_content(self) -> None:
-        from myxo.syncer import ClaudeConverter
-
-        conv = ClaudeConverter()
-        result = conv.convert("# Rules\nSome rules.\n")
-        assert result.startswith(AUTOGEN_HEADER)
-        assert "# Rules" in result
-        assert "Some rules." in result
+    conv = ClaudeConverter()
+    assert conv.output_path(tmp_path) == tmp_path / "CLAUDE.md"
 
 
-class TestCodexConverter:
-    """Tests for CodexConverter."""
+def test_claude_converter_includes_header_and_content() -> None:
+    from myxo.syncer import ClaudeConverter
 
-    def test_output_path(self, tmp_path: Path) -> None:
-        from myxo.syncer import CodexConverter
-
-        conv = CodexConverter()
-        assert conv.output_path(tmp_path) == tmp_path / "AGENTS.md"
-
-    def test_convert_includes_header_and_content(self) -> None:
-        from myxo.syncer import CodexConverter
-
-        conv = CodexConverter()
-        result = conv.convert("# Rules\nSome rules.\n")
-        assert result.startswith(AUTOGEN_HEADER)
-        assert "# Rules" in result
+    conv = ClaudeConverter()
+    result = conv.convert("# Rules\nSome rules.\n")
+    assert result.startswith(AUTOGEN_HEADER)
+    assert "# Rules" in result
+    assert "Some rules." in result
 
 
-class TestCursorConverter:
-    """Tests for CursorConverter."""
+def test_codex_converter_output_path(tmp_path: Path) -> None:
+    from myxo.syncer import CodexConverter
 
-    def test_output_path(self, tmp_path: Path) -> None:
-        from myxo.syncer import CursorConverter
-
-        conv = CursorConverter()
-        assert conv.output_path(tmp_path) == tmp_path / ".cursor" / "rules"
-
-    def test_convert_includes_header_and_content(self) -> None:
-        from myxo.syncer import CursorConverter
-
-        conv = CursorConverter()
-        result = conv.convert("# Rules\nSome rules.\n")
-        assert result.startswith(AUTOGEN_HEADER)
-        assert "# Rules" in result
-
-    def test_creates_cursor_directory(self, tmp_path: Path, monkeypatch) -> None:
-        """CursorConverter should create .cursor/ dir if missing."""
-        from myxo.syncer import CursorConverter
-
-        conv = CursorConverter()
-        output_path = conv.output_path(tmp_path)
-        # Ensure .cursor/ doesn't exist yet
-        assert not (tmp_path / ".cursor").exists()
-        # Write should create the directory
-        conv.write(tmp_path, "content")
-        assert output_path.exists()
+    conv = CodexConverter()
+    assert conv.output_path(tmp_path) == tmp_path / "AGENTS.md"
 
 
-class TestWindsurfConverter:
-    """Tests for WindsurfConverter."""
+def test_codex_converter_includes_header_and_content() -> None:
+    from myxo.syncer import CodexConverter
 
-    def test_output_path(self, tmp_path: Path) -> None:
-        from myxo.syncer import WindsurfConverter
+    conv = CodexConverter()
+    result = conv.convert("# Rules\nSome rules.\n")
+    assert result.startswith(AUTOGEN_HEADER)
+    assert "# Rules" in result
 
-        conv = WindsurfConverter()
-        assert conv.output_path(tmp_path) == tmp_path / ".windsurfrules"
 
-    def test_convert_includes_header_and_content(self) -> None:
-        from myxo.syncer import WindsurfConverter
+def test_cursor_converter_output_path(tmp_path: Path) -> None:
+    from myxo.syncer import CursorConverter
 
-        conv = WindsurfConverter()
-        result = conv.convert("# Rules\nSome rules.\n")
-        assert result.startswith(AUTOGEN_HEADER)
-        assert "# Rules" in result
+    conv = CursorConverter()
+    assert conv.output_path(tmp_path) == tmp_path / ".cursor" / "rules"
+
+
+def test_cursor_converter_includes_header_and_content() -> None:
+    from myxo.syncer import CursorConverter
+
+    conv = CursorConverter()
+    result = conv.convert("# Rules\nSome rules.\n")
+    assert result.startswith(AUTOGEN_HEADER)
+    assert "# Rules" in result
+
+
+def test_cursor_converter_creates_cursor_directory(tmp_path: Path) -> None:
+    """CursorConverter should create .cursor/ dir if missing."""
+    from myxo.syncer import CursorConverter
+
+    conv = CursorConverter()
+    output_path = conv.output_path(tmp_path)
+    assert not (tmp_path / ".cursor").exists()
+    conv.write(tmp_path, "content")
+    assert output_path.exists()
+
+
+def test_windsurf_converter_output_path(tmp_path: Path) -> None:
+    from myxo.syncer import WindsurfConverter
+
+    conv = WindsurfConverter()
+    assert conv.output_path(tmp_path) == tmp_path / ".windsurfrules"
+
+
+def test_windsurf_converter_includes_header_and_content() -> None:
+    from myxo.syncer import WindsurfConverter
+
+    conv = WindsurfConverter()
+    result = conv.convert("# Rules\nSome rules.\n")
+    assert result.startswith(AUTOGEN_HEADER)
+    assert "# Rules" in result
 
 
 # ---------------------------------------------------------------------------
@@ -178,66 +169,94 @@ class TestWindsurfConverter:
 # ---------------------------------------------------------------------------
 
 
-class TestSyncCommandTarget:
-    """Tests for sync command with --target option."""
+def test_sync_default_generates_all_targets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Without --target, all targets are generated."""
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 0
+    assert (tmp_path / "CLAUDE.md").exists()
+    assert (tmp_path / "AGENTS.md").exists()
+    assert (tmp_path / ".cursor" / "rules").exists()
+    assert (tmp_path / ".windsurfrules").exists()
 
-    def test_sync_default_generates_all_targets(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
-        """Without --target, all targets are generated."""
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-        result = runner.invoke(app, ["sync"])
-        assert result.exit_code == 0
-        assert (tmp_path / "CLAUDE.md").exists()
-        assert (tmp_path / "AGENTS.md").exists()
-        assert (tmp_path / ".cursor" / "rules").exists()
-        assert (tmp_path / ".windsurfrules").exists()
 
-    def test_sync_target_claude(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-        result = runner.invoke(app, ["sync", "--target", "claude"])
-        assert result.exit_code == 0
-        assert (tmp_path / "CLAUDE.md").exists()
-        assert not (tmp_path / "AGENTS.md").exists()
+def test_sync_target_claude(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync", "--target", "claude"])
+    assert result.exit_code == 0
+    assert (tmp_path / "CLAUDE.md").exists()
+    assert not (tmp_path / "AGENTS.md").exists()
 
-    def test_sync_target_codex(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-        result = runner.invoke(app, ["sync", "--target", "codex"])
-        assert result.exit_code == 0
-        assert (tmp_path / "AGENTS.md").exists()
-        assert not (tmp_path / "CLAUDE.md").exists()
 
-    def test_sync_target_cursor(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-        result = runner.invoke(app, ["sync", "--target", "cursor"])
-        assert result.exit_code == 0
-        assert (tmp_path / ".cursor" / "rules").exists()
-        assert not (tmp_path / "CLAUDE.md").exists()
+def test_sync_target_codex(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync", "--target", "codex"])
+    assert result.exit_code == 0
+    assert (tmp_path / "AGENTS.md").exists()
+    assert not (tmp_path / "CLAUDE.md").exists()
 
-    def test_sync_target_windsurf(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-        result = runner.invoke(app, ["sync", "--target", "windsurf"])
-        assert result.exit_code == 0
-        assert (tmp_path / ".windsurfrules").exists()
-        assert not (tmp_path / "CLAUDE.md").exists()
 
-    def test_sync_target_invalid(self, tmp_path: Path, monkeypatch) -> None:
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-        result = runner.invoke(app, ["sync", "--target", "invalid"])
-        assert result.exit_code == 1
-        assert "Unknown target" in result.output
+def test_sync_target_cursor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync", "--target", "cursor"])
+    assert result.exit_code == 0
+    assert (tmp_path / ".cursor" / "rules").exists()
+    assert not (tmp_path / "CLAUDE.md").exists()
 
-    def test_sync_output_messages(self, tmp_path: Path, monkeypatch) -> None:
-        """Sync command should report generated files."""
-        monkeypatch.chdir(tmp_path)
-        _setup_myxo_dir(tmp_path)
-        result = runner.invoke(app, ["sync"])
-        assert result.exit_code == 0
-        assert "CLAUDE.md" in result.output
-        assert "AGENTS.md" in result.output
+
+def test_sync_target_windsurf(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync", "--target", "windsurf"])
+    assert result.exit_code == 0
+    assert (tmp_path / ".windsurfrules").exists()
+    assert not (tmp_path / "CLAUDE.md").exists()
+
+
+def test_sync_target_invalid(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync", "--target", "invalid"])
+    assert result.exit_code == 1
+    assert "Unknown target" in result.output
+
+
+def test_sync_output_messages(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Sync command should report generated files with relative paths."""
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync"])
+    assert result.exit_code == 0
+    assert "CLAUDE.md" in result.output
+    assert "AGENTS.md" in result.output
+    assert ".cursor/rules" in result.output
+    assert ".windsurfrules" in result.output
+
+
+def test_sync_target_cursor_shows_full_relative_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Cursor output should show .cursor/rules, not just 'rules'."""
+    monkeypatch.chdir(tmp_path)
+    _setup_myxo_dir(tmp_path)
+    result = runner.invoke(app, ["sync", "--target", "cursor"])
+    assert result.exit_code == 0
+    assert ".cursor/rules" in result.output

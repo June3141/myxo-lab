@@ -39,7 +39,7 @@ def init() -> None:
 
 @app.command()
 def sync(
-    target: str = typer.Option(
+    target: str | None = typer.Option(
         None,
         "--target",
         help="Sync only a specific target (claude, codex, cursor, windsurf).",
@@ -68,11 +68,13 @@ def sync(
         except ValueError as exc:
             typer.echo(f"Error: {exc}")
             raise typer.Exit(code=1)
-        typer.echo(f"{path.name} generated ({path})")
+        rel = path.relative_to(root)
+        typer.echo(f"{rel} generated ({path})")
     else:
         paths = syncer.sync_all(root)
         for path in paths:
-            typer.echo(f"{path.name} generated ({path})")
+            rel = path.relative_to(root)
+            typer.echo(f"{rel} generated ({path})")
 
 
 @app.command()
