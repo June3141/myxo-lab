@@ -1,5 +1,7 @@
 """Myxo CLI — uv + typer entrypoint."""
 
+from pathlib import Path
+
 import typer
 
 app = typer.Typer(
@@ -7,11 +9,35 @@ app = typer.Typer(
     help="Myxo — AI Agent Infrastructure Platform.",
 )
 
+_DEFAULT_CONFIG = "# Myxo repository configuration\nversion: \"0.1\"\n"
+_DEFAULT_RULES = "# Myxo Rules\n"
+_SUBDIRS = ("protocols", "procedures", "pseudopods")
+
 
 @app.command()
 def init() -> None:
     """Initialize a new .myxo/ configuration in the current repository."""
-    typer.echo("myxo init: not yet implemented")
+    myxo_dir = Path.cwd() / ".myxo"
+
+    if myxo_dir.exists():
+        if not myxo_dir.is_dir():
+            typer.echo(
+                ".myxo exists but is not a directory. "
+                "Please remove or rename it before running `myxo init`."
+            )
+            raise typer.Exit(code=1)
+        typer.echo(".myxo/ already exists — skipping initialization.")
+        return
+
+    myxo_dir.mkdir()
+
+    (myxo_dir / "config.yaml").write_text(_DEFAULT_CONFIG)
+    (myxo_dir / "rules.md").write_text(_DEFAULT_RULES)
+
+    for subdir in _SUBDIRS:
+        sub = myxo_dir / subdir
+        sub.mkdir()
+        (sub / ".gitkeep").touch()
 
 
 @app.command()
