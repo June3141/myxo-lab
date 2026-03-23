@@ -16,6 +16,7 @@ triggers:
 
 ## Rules
 - PR タイトルは70文字以内にする
-- body に Summary と Test plan セクションを含める
+- body に Summary セクションを含める
+- Test plan は PR コメントとして追加する
 - base ブランチは develop を使用する
 - Closes #XX で関連 Issue を紐付ける
