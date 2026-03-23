@@ -19,12 +19,16 @@ class ContextSanitizer:
             re.compile(
                 r"(?:aws_secret_access_key|AWS_SECRET_ACCESS_KEY)"
                 r"\s*[=:]\s*"
-                r"([A-Za-z0-9/+=]{40})"
+                r"[A-Za-z0-9/+=]{40}"
             ),
         ),
         (
             "private-key",
-            re.compile(r"-----BEGIN\s[\w\s]*PRIVATE\sKEY-----"),
+            re.compile(
+                r"-----BEGIN\s[\w\s]*PRIVATE\sKEY-----"
+                r"[\s\S]*?"
+                r"-----END\s[\w\s]*PRIVATE\sKEY-----"
+            ),
         ),
         (
             "jwt",
@@ -38,7 +42,7 @@ class ContextSanitizer:
         ),
         (
             "password",
-            re.compile(r"password\s*=\s*['\"][^'\"]+['\"]"),
+            re.compile(r"\bpassword\b\s*=\s*['\"][^'\"]+['\"]"),
         ),
     ]
 
