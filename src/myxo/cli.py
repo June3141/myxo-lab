@@ -9,7 +9,7 @@ app = typer.Typer(
     help="Myxo — AI Agent Infrastructure Platform.",
 )
 
-_DEFAULT_CONFIG = "# Myxo repository configuration\nversion: \"0.1\"\n"
+_DEFAULT_CONFIG = '# Myxo repository configuration\nversion: "0.1"\n'
 _DEFAULT_RULES = "# Myxo Rules\n"
 _SUBDIRS = ("protocols", "procedures", "pseudopods")
 
@@ -21,10 +21,7 @@ def init() -> None:
 
     if myxo_dir.exists():
         if not myxo_dir.is_dir():
-            typer.echo(
-                ".myxo exists but is not a directory. "
-                "Please remove or rename it before running `myxo init`."
-            )
+            typer.echo(".myxo exists but is not a directory. Please remove or rename it before running `myxo init`.")
             raise typer.Exit(code=1)
         typer.echo(".myxo/ already exists — skipping initialization.")
         return
@@ -57,10 +54,7 @@ def sync() -> None:
     # Include rules.md (required)
     rules_path = myxo_dir / "rules.md"
     if not rules_path.is_file():
-        typer.echo(
-            "Error: .myxo/rules.md not found. "
-            "Run `myxo init` or create .myxo/rules.md."
-        )
+        typer.echo("Error: .myxo/rules.md not found. Run `myxo init` or create .myxo/rules.md.")
         raise typer.Exit(code=1)
     parts.append(rules_path.read_text(encoding="utf-8"))
 

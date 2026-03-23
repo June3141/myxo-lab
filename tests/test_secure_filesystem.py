@@ -4,7 +4,6 @@ import pytest
 
 from myxo.secure_filesystem import SecureFilesystemMCP
 
-
 # ---------------------------------------------------------------------------
 # Default patterns used across tests
 # ---------------------------------------------------------------------------

@@ -75,7 +75,7 @@ def test_init_twice_does_not_overwrite(tmp_path: Path, monkeypatch):
 
     # Modify config.yaml with custom content
     config = tmp_path / ".myxo" / "config.yaml"
-    config.write_text("version: \"0.2\"\ncustom: true\n")
+    config.write_text('version: "0.2"\ncustom: true\n')
 
     # Run init again
     result = runner.invoke(app, ["init"])

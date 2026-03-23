@@ -46,17 +46,13 @@ def _extract_block(content: str, resource_name: str) -> str:
 
 def test_issue_label_resource_used():
     content = _read_main()
-    assert "github.IssueLabel(" in content, (
-        "__main__.py must use github.IssueLabel to declare labels"
-    )
+    assert "github.IssueLabel(" in content, "__main__.py must use github.IssueLabel to declare labels"
 
 
 def test_all_expected_labels_defined():
     content = _read_main()
     for label in EXPECTED_LABELS:
-        assert f'"{label}"' in content or f"'{label}'" in content, (
-            f"Label '{label}' must be defined in __main__.py"
-        )
+        assert f'"{label}"' in content or f"'{label}'" in content, f"Label '{label}' must be defined in __main__.py"
 
 
 def test_repo_name_from_config():
@@ -64,9 +60,7 @@ def test_repo_name_from_config():
     assert "pulumi.Config" in content or "config.require" in content, (
         "Repo name should come from Pulumi config, not be hardcoded"
     )
-    assert "repo_name" in content, (
-        "Repo name should be stored in a variable (e.g., repo_name)"
-    )
+    assert "repo_name" in content, "Repo name should be stored in a variable (e.g., repo_name)"
     uses_repo_var = any(
         pattern in content
         for pattern in (
@@ -76,9 +70,7 @@ def test_repo_name_from_config():
             "repository_id = repo_name",
         )
     )
-    assert uses_repo_var, (
-        "IssueLabel/BranchProtection must use config-derived repo variable"
-    )
+    assert uses_repo_var, "IssueLabel/BranchProtection must use config-derived repo variable"
 
 
 # --- Branch Protection ---
@@ -103,9 +95,7 @@ def test_require_pr_reviews_on_main():
     content = _read_main()
     block = _extract_block(content, "protect-main")
     assert block, "protect-main resource must be defined"
-    assert "required_pull_request_reviews" in block, (
-        "main branch protection must require PR reviews"
-    )
+    assert "required_pull_request_reviews" in block, "main branch protection must require PR reviews"
 
 
 def test_require_status_checks():
@@ -122,7 +112,6 @@ def test_no_force_pushes_on_main():
     content = _read_main()
     block = _extract_block(content, "protect-main")
     assert block, "protect-main resource must be defined"
-    assert (
-        "allows_force_pushes=False" in block
-        or "allows_force_pushes = False" in block
-    ), "main branch protection must disallow force pushes"
+    assert "allows_force_pushes=False" in block or "allows_force_pushes = False" in block, (
+        "main branch protection must disallow force pushes"
+    )
