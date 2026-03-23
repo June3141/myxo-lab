@@ -1,6 +1,5 @@
 """Tests for the label-triggered procedure workflow."""
 
-import re
 from pathlib import Path
 
 import yaml
@@ -57,18 +56,19 @@ def test_references_pseudopod_abort_label():
 
 def test_uses_env_for_issue_data():
     """Workflow should use env: block for issue data instead of direct interpolation in run: blocks."""
+    data = yaml.safe_load(WORKFLOW.read_text())
     content = WORKFLOW.read_text()
-    # Find all run: blocks and check none contain direct ${{ github.event.issue interpolation
-    # The env: pattern should be used instead
-    run_blocks = re.findall(r"run:\s*[|>]?\s*\n((?:\s+.*\n)*)", content)
-    run_inline = re.findall(r'run:\s*(.+)$', content, re.MULTILINE)
 
-    all_run_content = "\n".join(run_blocks + run_inline)
-
-    assert "${{ github.event.issue" not in all_run_content, (
-        "run: blocks should not contain direct ${{ github.event.issue }} interpolation; "
-        "use env: instead for security"
-    )
+    # Collect all run: values from steps and verify none contain direct interpolation
+    jobs = data.get("jobs", {})
+    for job_name, job_config in jobs.items():
+        for step in job_config.get("steps", []):
+            run_value = step.get("run", "")
+            assert "${{ github.event.issue" not in run_value, (
+                f"Step '{step.get('name', 'unnamed')}' in job '{job_name}' "
+                "should not contain direct ${{ github.event.issue }} interpolation in run:; "
+                "use env: instead for security"
+            )
 
     # Verify env: is actually used somewhere with issue data
     assert "env:" in content, "Workflow should use env: blocks for issue data"
