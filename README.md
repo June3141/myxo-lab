@@ -59,29 +59,61 @@ Myxo uses a naming convention drawn from slime mold biology and experimental sci
 
 ## Architecture Overview
 
+### Experiment Execution Flow
+
+How a Hypothesis travels from idea to production.
+
+```mermaid
+flowchart TD
+    R["🧑‍🔬 Researcher (Human)"]
+    H["📋 Hypothesis (GitHub Issue)"]
+    P["🧪 Protocol"]
+    LN[("📓 LabNote\n(shared memory)")]
+    P1["🦠 Pseudopod"]
+    P2["🦠 Pseudopod"]
+    P3["🦠 ···"]
+    A["🔬 Assay"]
+    PR["📊 PeerReview"]
+    PUB["🌐 Publication"]
+    RN["🔔 Researcher\nnotification"]
+    RR["👁️ Researcher\nreview"]
+
+    R --> H --> P
+    P --> P1 & P2 & P3
+    P1 & P2 & P3 --> A
+    A --> PR
+    P -.->|read/write| LN
+    A -.->|read| LN
+
+    PR -->|AUTO_MERGE| PUB
+    PR -->|HUMAN_SUGGESTED| RN
+    PR -->|HUMAN_REQUIRED| RR
 ```
-Researcher (Human)
-    │
-    ▼
-Hypothesis (GitHub Issue)
-    │
-    ▼
-Protocol ──────────────────── LabNote (shared memory)
-    │  decomposes into          ▲
-    ▼                           │
-┌─────────┐  ┌─────────┐      │
-│Pseudopod│  │Pseudopod│ ···  │  (parallel execution)
-└────┬────┘  └────┬────┘      │
-     │             │           │
-     ▼             ▼           │
-   Assay ◄────────────────────┘  (quality verification)
-     │
-     ▼
-  PeerReview
-     │
-     ├─ AUTO_MERGE ──────► Publication
-     ├─ HUMAN_SUGGESTED ─► Researcher notification
-     └─ HUMAN_REQUIRED ──► Researcher review
+
+### Project Management Flow
+
+How experiments are tracked, discussed, and documented.
+
+```mermaid
+flowchart TD
+    R["🧑‍🔬 Researcher"]
+    H["📋 Hypothesis\n(GitHub Issue)"]
+    D["💬 Discussions"]
+    K["📊 Projects\n(Kanban)"]
+    W["📚 Wiki"]
+
+    R -->|creates| H
+    R -->|discusses| D
+    D -->|clarifies| H
+    H -->|tracked in| K
+    H -.->|knowledge captured in| W
+
+    subgraph Kanban["Kanban Board"]
+        direction LR
+        B["Backlog"] --> IP["In Progress"] --> RV["In Review"] --> DN["Done"]
+    end
+
+    K --- Kanban
 ```
 
 ### Technology Stack
