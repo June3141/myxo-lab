@@ -26,6 +26,11 @@ class SecureFilesystemMCP:
     # Internal helpers
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _normalize(path: str) -> str:
+        """Normalize backslashes to forward slashes for cross-platform support."""
+        return path.replace("\\", "/")
+
     def _matches_any(self, path: str, patterns: list[str]) -> bool:
         """Return True if *path* matches at least one of *patterns*.
 
@@ -34,6 +39,7 @@ class SecureFilesystemMCP:
         patterns like ``*.pem`` catch ``src/certs/server.pem`` and
         patterns like ``secrets/**`` catch ``secrets/api_key.txt``.
         """
+        path = self._normalize(path)
         pure = PurePosixPath(path)
         for pattern in patterns:
             # Match the full path
@@ -57,6 +63,7 @@ class SecureFilesystemMCP:
 
     def check_access(self, path: str) -> bool:
         """Return ``True`` if *path* is accessible, ``False`` otherwise."""
+        path = self._normalize(path)
         if self._matches_any(path, self.blocked_patterns):
             return False
         return self._matches_any(path, self.allowed_patterns)
