@@ -9,7 +9,8 @@ class ETagCache:
     """Cache that stores ETags and response bodies for conditional requests.
 
     Supports building ``If-None-Match`` headers and handling 304 responses
-    to avoid counting against GitHub API rate limits.
+    to enable GitHub's conditional request handling (304 Not Modified) which
+    does not count against rate limits.
     """
 
     def __init__(self) -> None:
@@ -24,12 +25,9 @@ class ETagCache:
     def build_headers(self, url: str, extra_headers: dict[str, str] | None = None) -> dict[str, str]:
         """Build request headers, adding ``If-None-Match`` when an ETag is cached.
 
-        Parameters
-        ----------
-        url:
-            The request URL to look up a cached ETag for.
-        extra_headers:
-            Optional additional headers to merge into the result.
+        Args:
+            url: The request URL to look up a cached ETag for.
+            extra_headers: Optional additional headers to merge into the result.
         """
         headers: dict[str, str] = {}
         if extra_headers:
