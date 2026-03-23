@@ -39,9 +39,7 @@ def test_syncer_collects_content_from_myxo_dir(tmp_path: Path) -> None:
     assert "# Code Review" in content
 
 
-def test_syncer_sync_all_creates_all_targets(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_syncer_sync_all_creates_all_targets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """sync_all() generates files for every registered target."""
     from myxo.syncer import MyxoSyncer
 
@@ -56,9 +54,7 @@ def test_syncer_sync_all_creates_all_targets(
     assert (tmp_path / ".windsurfrules").exists()
 
 
-def test_syncer_sync_specific_target(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_syncer_sync_specific_target(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """sync() with a target name generates only that target."""
     from myxo.syncer import MyxoSyncer
 
@@ -169,9 +165,7 @@ def test_windsurf_converter_includes_header_and_content() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_sync_default_generates_all_targets(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_default_generates_all_targets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Without --target, all targets are generated."""
     monkeypatch.chdir(tmp_path)
     _setup_myxo_dir(tmp_path)
@@ -183,9 +177,7 @@ def test_sync_default_generates_all_targets(
     assert (tmp_path / ".windsurfrules").exists()
 
 
-def test_sync_target_claude(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_target_claude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     _setup_myxo_dir(tmp_path)
     result = runner.invoke(app, ["sync", "--target", "claude"])
@@ -194,9 +186,7 @@ def test_sync_target_claude(
     assert not (tmp_path / "AGENTS.md").exists()
 
 
-def test_sync_target_codex(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_target_codex(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     _setup_myxo_dir(tmp_path)
     result = runner.invoke(app, ["sync", "--target", "codex"])
@@ -205,9 +195,7 @@ def test_sync_target_codex(
     assert not (tmp_path / "CLAUDE.md").exists()
 
 
-def test_sync_target_cursor(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_target_cursor(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     _setup_myxo_dir(tmp_path)
     result = runner.invoke(app, ["sync", "--target", "cursor"])
@@ -216,9 +204,7 @@ def test_sync_target_cursor(
     assert not (tmp_path / "CLAUDE.md").exists()
 
 
-def test_sync_target_windsurf(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_target_windsurf(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     _setup_myxo_dir(tmp_path)
     result = runner.invoke(app, ["sync", "--target", "windsurf"])
@@ -227,9 +213,7 @@ def test_sync_target_windsurf(
     assert not (tmp_path / "CLAUDE.md").exists()
 
 
-def test_sync_target_invalid(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_target_invalid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     _setup_myxo_dir(tmp_path)
     result = runner.invoke(app, ["sync", "--target", "invalid"])
@@ -237,9 +221,7 @@ def test_sync_target_invalid(
     assert "Unknown target" in result.output
 
 
-def test_sync_output_messages(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_output_messages(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Sync command should report generated files with relative paths."""
     monkeypatch.chdir(tmp_path)
     _setup_myxo_dir(tmp_path)
@@ -251,9 +233,7 @@ def test_sync_output_messages(
     assert ".windsurfrules" in result.output
 
 
-def test_sync_target_cursor_shows_full_relative_path(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_sync_target_cursor_shows_full_relative_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Cursor output should show .cursor/rules, not just 'rules'."""
     monkeypatch.chdir(tmp_path)
     _setup_myxo_dir(tmp_path)

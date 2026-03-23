@@ -120,9 +120,6 @@ class MyxoSyncer:
         """Sync to a specific target. Returns created path."""
         converter = _CONVERTER_MAP.get(target)
         if converter is None:
-            raise ValueError(
-                f"Unknown target: '{target}'. "
-                f"Available targets: {', '.join(_CONVERTER_MAP)}"
-            )
+            raise ValueError(f"Unknown target: '{target}'. Available targets: {', '.join(_CONVERTER_MAP)}")
         content = self.collect()
         return converter.write(root, content)

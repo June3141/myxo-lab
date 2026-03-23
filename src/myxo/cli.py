@@ -67,7 +67,7 @@ def sync(
             path = syncer.sync(root, target)
         except ValueError as exc:
             typer.echo(f"Error: {exc}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from None
         rel = path.relative_to(root)
         typer.echo(f"{rel} generated ({path})")
     else:
