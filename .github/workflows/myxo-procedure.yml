@@ -1,0 +1,63 @@
+name: Myxo Procedure
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  execute-procedure:
+    if: "github.event.label.name == 'state: pseudopod-ready'"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Transition to active state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh issue edit "$ISSUE_NUMBER" \
+            --repo "$REPO" \
+            --remove-label "state: pseudopod-ready" \
+            --add-label "state: pseudopod-active"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Execute procedure
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          echo "Executing procedure for issue #${ISSUE_NUMBER}: ${ISSUE_TITLE}"
+
+      - name: Mark complete on success
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh issue edit "$ISSUE_NUMBER" \
+            --repo "$REPO" \
+            --remove-label "state: pseudopod-active" \
+            --add-label "state: pseudopod-complete"
+
+      - name: Mark abort on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh issue edit "$ISSUE_NUMBER" \
+            --repo "$REPO" \
+            --remove-label "state: pseudopod-active" \
+            --add-label "state: pseudopod-abort"
