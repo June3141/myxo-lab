@@ -8,6 +8,8 @@ dependencies = [
     "httpx",
     "pyyaml",
     "rich",
+    "pulumi>=3.227.0",
+    "pulumi-github>=6.12.1",
 ]
 
 [project.scripts]
