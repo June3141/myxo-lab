@@ -34,14 +34,24 @@ Because PRs to `develop` are squash-merged, the **PR title IS the final commit m
 ## Summary
 <1-3 sentences describing the change>
 
-## Test plan
-- [ ] Verification steps as checklist
-
 Closes #<issue>
 ```
 
 - `Closes #N` for issues being resolved, `Refs #N` for related issues
 - All PRs must reference related issues when applicable
+- **Do NOT include Test plan in the PR body**
+
+## Test Plan Comment
+
+After creating the PR, post a **separate comment** with the test plan:
+
+```bash
+gh pr comment <PR_NUMBER> --repo June3141/myxo-lab --body "$(cat <<'EOF'
+## Test plan
+- [x] Verification steps as checklist
+EOF
+)"
+```
 
 ## Labels
 
@@ -79,6 +89,8 @@ Determine with: `gh api user --jq '.login'`
 
 ```bash
 ASSIGNEE=$(gh api user --jq '.login')
+
+# Step 1: Create PR (no test plan in body)
 gh pr create \
   --base develop \
   --title "feat: ✨ implement myxo init command" \
@@ -89,11 +101,15 @@ gh pr create \
 ## Summary
 Implement `myxo init` to scaffold `.myxo/` directory structure.
 
+Closes #7
+EOF
+)"
+
+# Step 2: Post test plan as separate comment
+gh pr comment <PR_NUMBER> --repo June3141/myxo-lab --body "$(cat <<'EOF'
 ## Test plan
 - [x] `uv run pytest -v` passes all tests
 - [x] `myxo init` creates expected directory structure
-
-Closes #7
 EOF
 )"
 ```
