@@ -4,6 +4,10 @@ on:
   issues:
     types: [labeled]
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   execute-procedure:
     if: "github.event.label.name == 'state: pseudopod-ready'"
