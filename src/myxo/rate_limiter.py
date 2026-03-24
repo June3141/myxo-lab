@@ -60,7 +60,13 @@ def check_rate_limit(response: httpx.Response) -> RateLimitInfo | None:
     Returns the parsed :class:`RateLimitInfo` or ``None``.
     """
     info = parse_rate_limit_headers(response)
-    if info is not None and info.is_low:
+    if info is not None and info.remaining == 0:
+        logger.warning(
+            "GitHub API rate limit exhausted: 0/%d remaining (resets at %d)",
+            info.limit,
+            info.reset_at,
+        )
+    elif info is not None and info.is_low:
         logger.warning(
             "GitHub API rate limit running low: %d/%d remaining (resets at %d)",
             info.remaining,
