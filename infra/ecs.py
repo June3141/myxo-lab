@@ -83,6 +83,25 @@ task_role = iam.Role(
     ),
 )
 
+# --- Fargate Spot Capacity Providers ----------------------------------------
+ecs.ClusterCapacityProviders(
+    "myxo-cluster-capacity-providers",
+    cluster_name=cluster.name,
+    capacity_providers=["FARGATE", "FARGATE_SPOT"],
+    default_capacity_provider_strategies=[
+        ecs.ClusterCapacityProvidersDefaultCapacityProviderStrategyArgs(
+            capacity_provider="FARGATE_SPOT",
+            weight=3,
+            base=0,
+        ),
+        ecs.ClusterCapacityProvidersDefaultCapacityProviderStrategyArgs(
+            capacity_provider="FARGATE",
+            weight=1,
+            base=1,
+        ),
+    ],
+)
+
 # --- ECS Task Definition -----------------------------------------------------
 task_definition = ecs.TaskDefinition(
     "myxo-task",
