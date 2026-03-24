@@ -13,7 +13,8 @@ dependencies = [
 ]
 
 [project.scripts]
-myxo = "myxo.cli:app"
+mxl = "myxo.cli:app"
+myxo = "myxo.cli:app"  # kept for migration period
 
 [build-system]
 requires = ["hatchling"]

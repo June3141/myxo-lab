@@ -1,4 +1,4 @@
-"""Protocol loader — read and validate .myxo/protocols/ templates."""
+"""Protocol loader — read and validate .myxo-lab/protocols/ templates."""
 
 from __future__ import annotations
 

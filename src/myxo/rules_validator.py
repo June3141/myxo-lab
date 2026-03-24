@@ -1,4 +1,4 @@
-"""Validator for .myxo/rules.md brevity guidelines."""
+"""Validator for .myxo-lab/rules.md brevity guidelines."""
 
 MAX_LINES = 50
 MAX_LINE_LENGTH = 120
