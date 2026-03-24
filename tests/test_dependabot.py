@@ -60,8 +60,7 @@ def test_target_branch_is_develop():
     data = yaml.safe_load(DEPENDABOT_PATH.read_text())
     for entry in data["updates"]:
         assert entry.get("target-branch") == "develop", (
-            f"Ecosystem {entry.get('package-ecosystem')} "
-            f"should target develop, got {entry.get('target-branch')}"
+            f"Ecosystem {entry.get('package-ecosystem')} should target develop, got {entry.get('target-branch')}"
         )
 
 
@@ -70,10 +69,7 @@ def test_schedule_interval_defined():
     data = yaml.safe_load(DEPENDABOT_PATH.read_text())
     for entry in data["updates"]:
         schedule = entry.get("schedule", {})
-        assert "interval" in schedule, (
-            f"Ecosystem {entry.get('package-ecosystem')} "
-            "must define schedule.interval"
-        )
+        assert "interval" in schedule, f"Ecosystem {entry.get('package-ecosystem')} must define schedule.interval"
 
 
 def test_open_pull_requests_limit():
@@ -81,6 +77,5 @@ def test_open_pull_requests_limit():
     data = yaml.safe_load(DEPENDABOT_PATH.read_text())
     for entry in data["updates"]:
         assert entry.get("open-pull-requests-limit") == 5, (
-            f"Ecosystem {entry.get('package-ecosystem')} "
-            "should limit open PRs to 5"
+            f"Ecosystem {entry.get('package-ecosystem')} should limit open PRs to 5"
         )
