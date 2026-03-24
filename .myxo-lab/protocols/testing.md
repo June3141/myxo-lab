@@ -13,7 +13,7 @@ triggers:
 2. Apply the corresponding pytest marker (`@pytest.mark.small`, `@pytest.mark.medium`, `@pytest.mark.large`)
 3. Follow the TDD cycle: write a failing test (RED), implement until it passes (GREEN), then refactor (REFACTOR)
 4. Run the full suite with `uv run pytest` and confirm no regressions
-5. Check coverage with `uv run pytest --cov` as a discovery tool to find untested paths
+5. When investigating coverage gaps, use `uv run pytest --cov` (requires `pytest-cov`)
 6. Lint test code with `uv run ruff check`
 
 ## Rules
@@ -27,7 +27,7 @@ triggers:
 | Large  | `@pytest.mark.large`  | End-to-end, external deps    | Allowed | Allowed    | Slow    |
 
 - Tests without an explicit marker are auto-classified as **small** by conftest.py.
-- CI runs small tests on every push; medium and large run on PR or scheduled builds.
+- CI runs `small` and `medium` tests on PRs via `-m "small or medium"`; `large` tests run on scheduled builds.
 
 ### TDD Cycle
 
@@ -44,7 +44,7 @@ triggers:
 
 ### Layer-Specific Strategies
 
-- **CLI (`src/myxo/cli/`)**: Test command parsing and output format; mock underlying services.
+- **CLI (`src/myxo/cli.py`)**: Test command parsing and output format; mock underlying services.
 - **Infrastructure (`infra/`)**: Validate Pulumi resource declarations via unit tests; use `pulumi.runtime.set_mocks()`.
 - **Workflow (`.github/workflows/`)**: Prefer act or manual smoke tests; keep CI YAML minimal and composable.
 
