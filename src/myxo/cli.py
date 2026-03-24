@@ -14,8 +14,7 @@ from rich.table import Table
 from myxo.verifier import CheckResult, GitHubVerifier
 
 app = typer.Typer(
-    name="mxl",
-    help="mxl — Myxo Lab CLI.",
+    help="Myxo Lab CLI.",
 )
 
 _DEFAULT_CONFIG = '# Myxo repository configuration\nversion: "0.1"\n'
@@ -37,8 +36,8 @@ def init() -> None:
 
     myxo_dir.mkdir()
 
-    (myxo_dir / "config.yaml").write_text(_DEFAULT_CONFIG)
-    (myxo_dir / "rules.md").write_text(_DEFAULT_RULES)
+    (myxo_dir / "config.yaml").write_text(_DEFAULT_CONFIG, encoding="utf-8")
+    (myxo_dir / "rules.md").write_text(_DEFAULT_RULES, encoding="utf-8")
 
     for subdir in _SUBDIRS:
         sub = myxo_dir / subdir
@@ -116,6 +115,10 @@ def _run_verify(fix: bool = False) -> int:
     config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     gh_config = config.get("github", {})
     repo = gh_config.get("repo", "")
+
+    if not repo:
+        typer.echo("Error: 'github.repo' is not set in .myxo-lab/config.yaml.")
+        return 1
 
     verifier = _create_verifier()
     all_results: list[CheckResult] = []

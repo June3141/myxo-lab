@@ -15,7 +15,7 @@ runner = CliRunner()
 # ---------------------------------------------------------------------------
 
 
-def _create_myxo_dir(base: Path) -> Path:
+def _create_myxo_lab_dir(base: Path) -> Path:
     """Create a minimal .myxo-lab/ directory with a config that specifies a repo."""
     myxo = base / ".myxo-lab"
     myxo.mkdir()
@@ -60,7 +60,7 @@ def test_verify_fails_without_myxo_dir(tmp_path: Path, monkeypatch):
 def test_verify_accepts_fix_option(tmp_path: Path, monkeypatch):
     """verify --fix should be accepted as a valid option."""
     monkeypatch.chdir(tmp_path)
-    _create_myxo_dir(tmp_path)
+    _create_myxo_lab_dir(tmp_path)
 
     with patch("myxo.cli._run_verify", return_value=0):
         result = runner.invoke(app, ["verify", "--fix"])
@@ -76,7 +76,7 @@ def test_verify_accepts_fix_option(tmp_path: Path, monkeypatch):
 def test_verify_all_ok_exit_code_zero(tmp_path: Path, monkeypatch):
     """verify should exit 0 when all checks pass."""
     monkeypatch.chdir(tmp_path)
-    _create_myxo_dir(tmp_path)
+    _create_myxo_lab_dir(tmp_path)
 
     mock_verifier = AsyncMock()
     mock_verifier.check_labels.return_value = [
@@ -105,7 +105,7 @@ def test_verify_all_ok_exit_code_zero(tmp_path: Path, monkeypatch):
 def test_verify_with_failures_exit_code_one(tmp_path: Path, monkeypatch):
     """verify should exit 1 when any check fails."""
     monkeypatch.chdir(tmp_path)
-    _create_myxo_dir(tmp_path)
+    _create_myxo_lab_dir(tmp_path)
 
     mock_verifier = AsyncMock()
     mock_verifier.check_labels.return_value = [
@@ -133,7 +133,7 @@ def test_verify_with_failures_exit_code_one(tmp_path: Path, monkeypatch):
 def test_verify_output_shows_check_results(tmp_path: Path, monkeypatch):
     """verify should display check results including name and status."""
     monkeypatch.chdir(tmp_path)
-    _create_myxo_dir(tmp_path)
+    _create_myxo_lab_dir(tmp_path)
 
     mock_verifier = AsyncMock()
     mock_verifier.check_labels.return_value = [
@@ -165,7 +165,7 @@ def test_verify_output_shows_check_results(tmp_path: Path, monkeypatch):
 def test_verify_fix_calls_fix_methods(tmp_path: Path, monkeypatch):
     """verify --fix should call fix methods when failures exist."""
     monkeypatch.chdir(tmp_path)
-    _create_myxo_dir(tmp_path)
+    _create_myxo_lab_dir(tmp_path)
 
     mock_verifier = AsyncMock()
     mock_verifier.check_labels.return_value = [
