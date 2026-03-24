@@ -13,6 +13,7 @@ permissions:
 jobs:
   preview:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v6
 
@@ -21,11 +22,18 @@ jobs:
           python-version: "3.13"
           enable-cache: true
 
-      - name: Install dependencies
+      - name: Install infra dependencies
         working-directory: infra
         run: uv sync
 
+      - name: Check Pulumi token
+        id: check-token
+        env:
+          HAS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN != '' }}
+        run: echo "has_token=$HAS_TOKEN" >> "$GITHUB_OUTPUT"
+
       - uses: pulumi/actions@v6
+        if: steps.check-token.outputs.has_token == 'true'
         with:
           command: preview
           stack-name: dev
@@ -33,3 +41,7 @@ jobs:
           comment-on-pr: true
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Skip notice
+        if: steps.check-token.outputs.has_token != 'true'
+        run: echo "::notice::Pulumi preview skipped — PULUMI_ACCESS_TOKEN not configured"
