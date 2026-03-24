@@ -3,6 +3,12 @@ name: Lint & Format
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/lint.yml"
 
 jobs:
   ruff:
@@ -12,6 +18,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
+          enable-cache: true
       - run: uv run ruff check src/ tests/
       - run: uv run ruff format --check src/ tests/
 
@@ -22,6 +29,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
+          enable-cache: true
       - run: uv run ty check src/
 
   test:
@@ -31,4 +39,5 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
+          enable-cache: true
       - run: uv run pytest -m "small or medium"
