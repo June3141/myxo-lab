@@ -6,7 +6,7 @@ title = "myxo-lab gitleaks config"
 [allowlist]
 description = "Global allowlist for false positives"
 paths = [
-    '''tests/.*''',
-    '''\.myxo-lab/.*''',
-    '''assets/.*''',
+    'tests/test_sanitizer\.py',
+    '\.myxo-lab/protocols/.*\.md',
+    'assets/logo-.*\.png',
 ]
