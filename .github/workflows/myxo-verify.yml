@@ -30,8 +30,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
         run: |
-          gh issue create \
-            --title "mxl verify drift detected" \
-            --body "Weekly verification failed. See [workflow run]($RUN_URL) for details." \
-            --label "bug"
+          EXISTING=$(gh issue list --repo "$REPO" --state open \
+            --search "mxl verify drift detected" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$REPO" \
+              --body "Drift still present. See [workflow run]($RUN_URL)."
+          else
+            gh issue create --repo "$REPO" \
+              --title "mxl verify drift detected" \
+              --body "Weekly verification failed. See [workflow run]($RUN_URL) for details." \
+              --label "bug"
+          fi
