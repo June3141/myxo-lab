@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/.schema/devbox.schema.json",
+  "packages": [
+    "git",
+    "gh",
+    "python313",
+    "nodejs"
+  ]
+}
