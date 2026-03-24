@@ -34,8 +34,10 @@ def test_references_actions_environment():
     """secrets.py must reference GitHub Actions environments."""
     src = _secrets_source()
     assert (
-        "ActionsEnvironment" in src or "actions_environment" in src
-    ), "secrets.py must reference ActionsEnvironment or environment definitions"
+        "ActionsEnvironment" in src
+        or "RepositoryEnvironment" in src
+        or "actions_environment" in src
+    ), "secrets.py must reference environment definitions"
 
 
 def test_defines_development_environment():

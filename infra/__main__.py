@@ -4,6 +4,7 @@ import pulumi
 import pulumi_github as github
 
 import ecs  # noqa: F401 — ECS Fargate resources (Pulumi runs from infra/ directory)
+import secrets  # noqa: F401 — GitHub Secrets & Environments
 
 # ---------------------------------------------------------------------------
 # Configuration
