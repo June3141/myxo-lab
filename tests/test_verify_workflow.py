@@ -49,9 +49,9 @@ def test_references_mxl_verify_in_run_blocks():
         for step in job.get("steps", []):
             if "run" in step:
                 run_steps.append(step["run"])
-    assert any(
-        "mxl verify" in run or "myxo verify" in run for run in run_steps
-    ), "At least one run step must contain 'mxl verify' or 'myxo verify'"
+    assert any("mxl verify" in run or "myxo verify" in run for run in run_steps), (
+        "At least one run step must contain 'mxl verify' or 'myxo verify'"
+    )
 
 
 def test_has_permissions():
@@ -68,6 +68,5 @@ def test_no_expression_interpolation_in_run_blocks():
         for step in job.get("steps", []):
             if "run" in step:
                 assert "${{" not in step["run"], (
-                    f"run: blocks must not contain ${{{{ }}}} expressions; "
-                    f"use env: instead. Found in: {step['run']}"
+                    f"run: blocks must not contain ${{{{ }}}} expressions; use env: instead. Found in: {step['run']}"
                 )
