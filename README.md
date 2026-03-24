@@ -53,7 +53,7 @@ Myxo uses a naming convention drawn from slime mold biology and experimental sci
 | **Publication** | — | Production environment — verified results released to the world. |
 | **LabNote** | — | Global shared memory (S3 JSON). Knowledge accumulated across all experiments. |
 | **BenchNote** | — | Per-repository memory. Observations specific to one codebase (bench notes from the lab). |
-| **.myxo/** | — | Configuration directory at the repository root. Contains rules, protocols, and agent definitions. |
+| **.myxo-lab/** | — | Configuration directory at the repository root. Contains rules, protocols, and agent definitions. |
 
 ---
 

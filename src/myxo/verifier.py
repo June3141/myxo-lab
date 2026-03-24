@@ -1,4 +1,4 @@
-"""GitHub settings verifier for myxo verify command."""
+"""GitHub settings verifier for mxl verify command."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ class CheckResult:
 
 
 class GitHubVerifier:
-    """Verifies GitHub repository settings against .myxo/ configuration."""
+    """Verifies GitHub repository settings against .myxo-lab/ configuration."""
 
     API_BASE = "https://api.github.com"
 

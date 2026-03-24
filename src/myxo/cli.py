@@ -14,8 +14,7 @@ from rich.table import Table
 from myxo.verifier import CheckResult, GitHubVerifier
 
 app = typer.Typer(
-    name="myxo",
-    help="Myxo — AI Agent Infrastructure Platform.",
+    help="Myxo Lab CLI.",
 )
 
 _DEFAULT_CONFIG = '# Myxo repository configuration\nversion: "0.1"\n'
@@ -25,20 +24,20 @@ _SUBDIRS = ("protocols", "procedures", "myxos")
 
 @app.command()
 def init() -> None:
-    """Initialize a new .myxo/ configuration in the current repository."""
-    myxo_dir = Path.cwd() / ".myxo"
+    """Initialize a new .myxo-lab/ configuration in the current repository."""
+    myxo_dir = Path.cwd() / ".myxo-lab"
 
     if myxo_dir.exists():
         if not myxo_dir.is_dir():
-            typer.echo(".myxo exists but is not a directory. Please remove or rename it before running `myxo init`.")
+            typer.echo(".myxo-lab exists but is not a directory. Please remove or rename it before running `mxl init`.")
             raise typer.Exit(code=1)
-        typer.echo(".myxo/ already exists — skipping initialization.")
+        typer.echo(".myxo-lab/ already exists — skipping initialization.")
         return
 
     myxo_dir.mkdir()
 
-    (myxo_dir / "config.yaml").write_text(_DEFAULT_CONFIG)
-    (myxo_dir / "rules.md").write_text(_DEFAULT_RULES)
+    (myxo_dir / "config.yaml").write_text(_DEFAULT_CONFIG, encoding="utf-8")
+    (myxo_dir / "rules.md").write_text(_DEFAULT_RULES, encoding="utf-8")
 
     for subdir in _SUBDIRS:
         sub = myxo_dir / subdir
@@ -57,15 +56,15 @@ def sync(
     """Sync agent configurations (Claude Code / Codex / Cursor / Windsurf)."""
     from myxo.syncer import MyxoSyncer
 
-    myxo_dir = Path.cwd() / ".myxo"
+    myxo_dir = Path.cwd() / ".myxo-lab"
 
     if not myxo_dir.is_dir():
-        typer.echo("Error: .myxo/ directory not found. Run `myxo init` first.")
+        typer.echo("Error: .myxo-lab/ directory not found. Run `mxl init` first.")
         raise typer.Exit(code=1)
 
     rules_path = myxo_dir / "rules.md"
     if not rules_path.is_file():
-        typer.echo("Error: .myxo/rules.md not found. Run `myxo init` or create .myxo/rules.md.")
+        typer.echo("Error: .myxo-lab/rules.md not found. Run `mxl init` or create .myxo-lab/rules.md.")
         raise typer.Exit(code=1)
 
     syncer = MyxoSyncer(myxo_dir)
@@ -94,7 +93,7 @@ def _create_verifier() -> GitHubVerifier:
 
 def _render_results(results: list[CheckResult], console: Console) -> None:
     """Render check results as a Rich table."""
-    table = Table(title="myxo verify")
+    table = Table(title="mxl verify")
     table.add_column("Check", style="bold")
     table.add_column("Status")
     table.add_column("Message")
@@ -110,12 +109,16 @@ def _render_results(results: list[CheckResult], console: Console) -> None:
 
 def _run_verify(fix: bool = False) -> int:
     """Run all verification checks. Returns 0 if all ok, 1 otherwise."""
-    myxo_dir = Path.cwd() / ".myxo"
+    myxo_dir = Path.cwd() / ".myxo-lab"
     config_path = myxo_dir / "config.yaml"
 
     config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     gh_config = config.get("github", {})
     repo = gh_config.get("repo", "")
+
+    if not repo:
+        typer.echo("Error: 'github.repo' is not set in .myxo-lab/config.yaml.")
+        return 1
 
     verifier = _create_verifier()
     all_results: list[CheckResult] = []
@@ -150,11 +153,11 @@ def _run_verify(fix: bool = False) -> int:
 def verify(
     fix: bool = typer.Option(False, "--fix", help="Automatically fix issues"),
 ) -> None:
-    """Verify GitHub settings match .myxo/ configuration."""
-    myxo_dir = Path.cwd() / ".myxo"
+    """Verify GitHub settings match .myxo-lab/ configuration."""
+    myxo_dir = Path.cwd() / ".myxo-lab"
 
     if not myxo_dir.is_dir():
-        typer.echo("Error: .myxo/ directory not found. Run `myxo init` first.")
+        typer.echo("Error: .myxo-lab/ directory not found. Run `mxl init` first.")
         raise typer.Exit(code=1)
 
     exit_code = _run_verify(fix=fix)

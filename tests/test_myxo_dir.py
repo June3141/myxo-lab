@@ -1,8 +1,8 @@
-"""Tests for .myxo/ directory structure."""
+"""Tests for .myxo-lab/ directory structure."""
 
 from pathlib import Path
 
-MYXO_DIR = Path(__file__).parent.parent / ".myxo"
+MYXO_DIR = Path(__file__).parent.parent / ".myxo-lab"
 
 
 def test_myxo_dir_exists():
