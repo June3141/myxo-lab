@@ -7,27 +7,38 @@ import yaml
 WORKFLOW_PATH = Path(__file__).parent.parent / ".github" / "workflows" / "container-build.yml"
 
 
+def _load_workflow() -> dict:
+    """Load workflow YAML, handling 'on' key parsed as boolean True."""
+    return yaml.safe_load(WORKFLOW_PATH.read_text())
+
+
+def _get_on_block(data: dict) -> dict:
+    """Get the 'on' trigger block (YAML parses bare 'on' as True)."""
+    return data.get(True, data.get("on", {}))
+
+
 def test_workflow_file_exists():
     assert WORKFLOW_PATH.is_file(), "container-build.yml must exist"
 
 
 def test_workflow_is_valid_yaml():
-    content = WORKFLOW_PATH.read_text()
-    data = yaml.safe_load(content)
+    data = _load_workflow()
     assert isinstance(data, dict), "Workflow must be a valid YAML mapping"
 
 
 def test_triggers_on_pull_request_with_paths_filter():
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
-    pr_trigger = data.get("on", {}).get("pull_request", {})
+    data = _load_workflow()
+    on_block = _get_on_block(data)
+    pr_trigger = on_block.get("pull_request", {})
     assert pr_trigger is not None, "Must trigger on pull_request"
     paths = pr_trigger.get("paths", [])
     assert "container/**" in paths, "Must filter on container/** path"
 
 
 def test_pull_request_trigger_types():
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
-    pr_trigger = data["on"]["pull_request"]
+    data = _load_workflow()
+    on_block = _get_on_block(data)
+    pr_trigger = on_block["pull_request"]
     types = pr_trigger.get("types", [])
     assert "opened" in types
     assert "synchronize" in types

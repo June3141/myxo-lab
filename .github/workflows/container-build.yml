@@ -1,0 +1,20 @@
+name: Container Build Verification
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "container/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build container image
+        run: docker build -t myxo-lab:test container/
