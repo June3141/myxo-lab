@@ -8,42 +8,28 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
 from myxo.github_app import create_installation_token, generate_jwt, get_installation_token
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
-# RSA 2048 key pair generated for testing (not used anywhere else).
-_TEST_PRIVATE_KEY = """\
------BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA0Z3VS5JJcds3xfn/ygWep4PAtGoRBh2MBjRBFWmnb0fGLHKb
-K3mCFKsgMOMAFCBMKOD3EnWDHM0DPFKR3GJ3CKg5SREjLCPVFwlFmAhTgV0hRFID
-7dOmCJpfpyKm0VrXoGD4MF4DODaR+KxFPkZeFPGriiYjRHJavNJB3RMkd2l1aGjo
-MF3KNwSCi0z/aP3jFMMakT7Bm8YGPnl9HVTGKJN6lxEb/MvdF4cLjmsZNYB/NJW
-L03FUPZqj5B6gmOM3WNcEMjp+3nD0GHtJCjfBh6bN6LhRZFKfuEFEU+2wjDHKtri
-yRoVcjdZ5JVr0SpHj5RlFNjLk6OHCVmv3vvHkwIDAQABAoIBAC5RgZ+hBx7xHNaM
-pPgwGMnCd2vHaBO+y9VXHB3+FkBErcSXQdMRQEhMdHxjBXeFsHiHSNzhda/4bFnR
-KPiQz7fB5PMBjsn/kxfSiwmQPr8hOYVqxU+YHl0VdUOxOJ5H4V0uyPzPAt7xVNfJ
-Ks3P7MkzMrJVMmPGR7DGf2JdSfx/JXFb4B3dfH2VBMqceSzjD+c9v4z5DDtPWVVS
-Dn1sWVNRBjGAPp0DNm05isN9iFMjveGHO6kQQVl7hpKzhrVhJl3JNcJFf2HjPTvH
-X3h99Y0Z2VfPZmRaVX7dIfFNJEKHPOb5il0Fr4EvP7sFyvFROWbkf3hYBsNG3VdM
-KVNFVaECgYEA9CHg7REQM5oIuGkfhzNJbNH0MwXlGRMSkqGzuFL/sFR/6FNHVf4G
-SUAFsBw8SkB1AMe3weCRhaL1pKjcDasHMBKkRoRjPJRGM5tjQ+8z5DDnKY3FU0lG
-CiAYsbcMJEl/Cn0vXN2QPVFX2hOFGrcaZuPVCYkPHklTXfAgo2Ep3NMCgYEA3B1t
-YjPE7VT/X1VhKR0CedBRDBFwPv26OEuSWqzVCojSC+G68ZAhJpVIJ0zTdG/RCOE7
-TD3MFRgRjTQO6z/HBS3FCJfKpgPGxNQlJjGIhMMGvjb4KNYZUD1sCNRBH0MpdGlj
-BjXKIrUADFIlqYETXSD/d6zk8dWvSa3B6kOON5ECgYEAr5jXkR4g8DPOi3LHCaAe
-MlxEZFEy9GHxHHWBKJV3s9LTVOxfDZE0aBlcQ3e8Lr2EMpH5iyQgr4F9Jx2OI4+8
-qVtV0PRGO0PrJCb/j7a7BAX3fUUDoh4mQIhKcq7z7WZFpJ7fi9XD+MN7IkmxhaSj
-oBaVLLeCxkVGZOP4SSipGtsCgYEAtKez0d9+FiKXjHSWHYiTSyDfZl/bXyxPDS5l
-5tELYBMTz4cNpaOdFjIVtB3KY3ILkBNPmPlZFJLNvvFz0mP9BIrhTHOH0u9idsWm
-IK+1GJJkTljBIaU+aCLBGwcZRJ5oGdAU2jNrHPB9w2gISN7L5Gn/KKo0YRJ1fSj3
-WPhRfcECgYBSr3FRSBPGT7xbY0niI9W3dJ7oLKlyUVd9nt5j5IxY/15J7PKh7GQz
-XPkH/c3N0n4d0CVQQ5w3MKa0qDP7yXC4OfGJqGQdVo2FPEAdGEYI+KJF2mGVJ9Y6
-PhPCREm/UrGJPwAZHF17TFRKJRdH5Sxsr5UVpELCIwcLJW0FKv+BaA==
------END RSA PRIVATE KEY-----
-"""
+
+def _generate_test_private_key() -> str:
+    """Generate a fresh RSA-2048 private key in PEM format for testing."""
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    return key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode()
+
+
+# Module-level fixture (generated once per test session).
+_TEST_PRIVATE_KEY = _generate_test_private_key()
 
 
 # ---------------------------------------------------------------------------
