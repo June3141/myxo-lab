@@ -67,6 +67,6 @@ def test_no_direct_interpolation_in_run_blocks():
             run_block = step.get("run")
             if run_block is None:
                 continue
-            assert not re.search(
-                r"\$\{\{", run_block
-            ), f"Direct ${{{{ }}}} interpolation found in run block of job '{job_name}': {run_block!r}"
+            assert not re.search(r"\$\{\{", run_block), (
+                f"Direct ${{{{ }}}} interpolation found in run block of job '{job_name}': {run_block!r}"
+            )
