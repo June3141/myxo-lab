@@ -25,7 +25,7 @@ Because PRs to `develop` are squash-merged, the **PR title IS the final commit m
 - English, lowercase start, no trailing period, imperative mood
 - Max 70 characters
 - Examples:
-  - `feat: ✨ implement myxo init command`
+  - `feat: ✨ implement mxl init command`
   - `fix: 🐛 resolve experiment scheduling race condition`
 
 ## PR Body Template
@@ -93,13 +93,13 @@ ASSIGNEE=$(gh api user --jq '.login')
 # Step 1: Create PR (no test plan in body)
 gh pr create \
   --base develop \
-  --title "feat: ✨ implement myxo init command" \
+  --title "feat: ✨ implement mxl init command" \
   --label "layer: cli" \
   --milestone "Phase 1: PoC" \
   --assignee "$ASSIGNEE" \
   --body "$(cat <<'EOF'
 ## Summary
-Implement `myxo init` to scaffold `.myxo/` directory structure.
+Implement `mxl init` to scaffold `.myxo-lab/` directory structure.
 
 Closes #7
 EOF
@@ -109,7 +109,7 @@ EOF
 gh pr comment <PR_NUMBER> --repo June3141/myxo-lab --body "$(cat <<'EOF'
 ## Test plan
 - [x] `uv run pytest -v` passes all tests
-- [x] `myxo init` creates expected directory structure
+- [x] `mxl init` creates expected directory structure
 EOF
 )"
 ```
