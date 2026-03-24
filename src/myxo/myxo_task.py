@@ -40,7 +40,7 @@ def _parse_task_content(content: str) -> MyxoTask:
         raise ValueError("Task file missing closing frontmatter delimiter")
 
     yaml_text = rest[:closing_idx]
-    body = rest[closing_idx + 5:]  # skip "\n---\n"
+    body = rest[closing_idx + 5 :]  # skip "\n---\n"
 
     try:
         frontmatter = yaml.safe_load(yaml_text)

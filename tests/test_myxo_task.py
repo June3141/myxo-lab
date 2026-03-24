@@ -151,9 +151,7 @@ class TestLoadAllMyxoTasks:
 
 # --- Sample task file integration test ---
 
-SAMPLE_TASK_PATH = (
-    Path(__file__).parent.parent / ".myxo-lab" / "myxos" / "gitignore-setup.md"
-)
+SAMPLE_TASK_PATH = Path(__file__).parent.parent / ".myxo-lab" / "myxos" / "gitignore-setup.md"
 
 
 class TestSampleTaskFile:
