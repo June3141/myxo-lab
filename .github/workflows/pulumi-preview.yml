@@ -19,6 +19,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
+          enable-cache: true
 
       - name: Install dependencies
         working-directory: infra
