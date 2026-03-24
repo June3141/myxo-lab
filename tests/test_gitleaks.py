@@ -52,16 +52,26 @@ def test_security_workflow_has_name():
     assert "name" in data, "workflow must have a name"
 
 
+def _get_triggers(data: dict) -> dict:
+    """Return the workflow trigger dict, handling YAML 'on' -> True key."""
+    # PyYAML parses bare `on:` as boolean True
+    if "on" in data:
+        return data["on"]
+    if True in data:
+        return data[True]
+    raise KeyError("workflow has no 'on' trigger key")
+
+
 def test_security_workflow_triggers_on_pull_request():
     data = yaml.safe_load(SECURITY_YML.read_text())
-    assert "on" in data, "workflow must define triggers"
-    triggers = data["on"]
+    triggers = _get_triggers(data)
     assert "pull_request" in triggers, "workflow must trigger on pull_request"
 
 
 def test_security_workflow_pr_types():
     data = yaml.safe_load(SECURITY_YML.read_text())
-    pr_config = data["on"]["pull_request"]
+    triggers = _get_triggers(data)
+    pr_config = triggers["pull_request"]
     assert "types" in pr_config, "pull_request trigger must specify types"
     types = pr_config["types"]
     for expected in ("opened", "synchronize", "reopened"):
@@ -70,13 +80,9 @@ def test_security_workflow_pr_types():
 
 def test_security_workflow_uses_gitleaks_action():
     content = SECURITY_YML.read_text()
-    assert "gitleaks/gitleaks-action" in content, (
-        "workflow must reference gitleaks/gitleaks-action"
-    )
+    assert "gitleaks/gitleaks-action" in content, "workflow must reference gitleaks/gitleaks-action"
 
 
 def test_security_workflow_gitleaks_action_v2():
     content = SECURITY_YML.read_text()
-    assert "gitleaks/gitleaks-action@v2" in content, (
-        "workflow must use gitleaks-action v2"
-    )
+    assert "gitleaks/gitleaks-action@v2" in content, "workflow must use gitleaks-action v2"
