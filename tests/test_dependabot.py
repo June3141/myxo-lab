@@ -73,9 +73,9 @@ def test_schedule_interval_defined():
 
 
 def test_open_pull_requests_limit():
-    """All ecosystems should limit open PRs to 5."""
+    """All ecosystems should disable PR creation (alerts only)."""
     data = yaml.safe_load(DEPENDABOT_PATH.read_text())
     for entry in data["updates"]:
-        assert entry.get("open-pull-requests-limit") == 5, (
-            f"Ecosystem {entry.get('package-ecosystem')} should limit open PRs to 5"
+        assert entry.get("open-pull-requests-limit") == 0, (
+            f"Ecosystem {entry.get('package-ecosystem')} should have open-pull-requests-limit: 0"
         )
