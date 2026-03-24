@@ -1,10 +1,10 @@
 ---
-name: code-structure
-description: Code structure rules (file size, function size, single responsibility, layer separation). Reference this when writing or reviewing implementation code.
+name: python-code-structure
+description: Python code structure rules for src/myxo/ (file size, function size, single responsibility, layer separation). Reference this when writing or reviewing Python implementation code.
 user-invocable: false
 ---
 
-# Code Structure Rules
+# Python Code Structure Rules
 
 ## File Size
 
@@ -40,6 +40,28 @@ user-invocable: false
 
 - CLI must not contain business logic — delegate to domain modules
 - Domain modules must not import from CLI or infra directly
+
+## Gotchas
+
+- `__init__.py` is exempt from single responsibility — it serves as the package's public API surface
+- Test files often exceed 300 lines because of fixtures and parametrized cases — this is expected
+- `cli.py` tends to grow as commands are added; when it exceeds 300 lines, split into `cli/` package with one file per command group
+- Pulumi infra files (`infra/`) follow Pulumi conventions (resource definitions in sequence), not general domain patterns — layer separation rules still apply but internal structure may differ
+- Auto-generated files (`uv.lock`, `package-lock.json`) and config files (`pyproject.toml`) are exempt from all limits
+
+## Validation
+
+After writing or modifying source files, verify limits:
+
+```bash
+# Check file sizes (source files only, excludes tests and auto-generated)
+find src/ -name '*.py' ! -name '__init__.py' -exec awk 'END{if(NR>300) print FILENAME": "NR" lines"}' {} \;
+
+# Check function sizes
+ruff check --select E302 src/
+```
+
+If any file exceeds 300 lines, propose a split before committing.
 
 ## When Limits Are Approaching
 
