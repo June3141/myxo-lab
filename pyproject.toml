@@ -25,6 +25,11 @@ packages = ["src/myxo"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "small: Fast unit tests (no network, no disk beyond tmp_path, no DB)",
+    "medium: Integration tests (may use network, disk, or local services)",
+    "large: End-to-end / system tests (external services, long-running)",
+]
 
 [dependency-groups]
 dev = [
