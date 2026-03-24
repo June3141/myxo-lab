@@ -25,5 +25,5 @@ def test_procedures_dir_exists():
     assert (MYXO_DIR / "procedures").is_dir()
 
 
-def test_pseudopods_dir_exists():
-    assert (MYXO_DIR / "pseudopods").is_dir()
+def test_myxos_dir_exists():
+    assert (MYXO_DIR / "myxos").is_dir()

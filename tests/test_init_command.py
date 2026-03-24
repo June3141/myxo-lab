@@ -37,14 +37,14 @@ def test_init_creates_rules_md(tmp_path: Path, monkeypatch):
 
 
 def test_init_creates_subdirectories(tmp_path: Path, monkeypatch):
-    """myxo init should create protocols/, procedures/, pseudopods/ subdirectories."""
+    """myxo init should create protocols/, procedures/, myxos/ subdirectories."""
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(app, ["init"])
     assert result.exit_code == 0
     myxo = tmp_path / ".myxo"
     assert (myxo / "protocols").is_dir()
     assert (myxo / "procedures").is_dir()
-    assert (myxo / "pseudopods").is_dir()
+    assert (myxo / "myxos").is_dir()
 
 
 def test_init_creates_gitkeep_in_subdirectories(tmp_path: Path, monkeypatch):
@@ -55,7 +55,7 @@ def test_init_creates_gitkeep_in_subdirectories(tmp_path: Path, monkeypatch):
     myxo = tmp_path / ".myxo"
     assert (myxo / "protocols" / ".gitkeep").is_file()
     assert (myxo / "procedures" / ".gitkeep").is_file()
-    assert (myxo / "pseudopods" / ".gitkeep").is_file()
+    assert (myxo / "myxos" / ".gitkeep").is_file()
 
 
 def test_init_fails_when_myxo_is_file(tmp_path: Path, monkeypatch):
