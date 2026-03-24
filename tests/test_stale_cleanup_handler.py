@@ -7,19 +7,26 @@ interface for the Lambda runtime.
 import importlib
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 # Add lambda/stale_cleanup to sys.path so we can import the handler
 HANDLER_DIR = Path(__file__).resolve().parent.parent / "lambda" / "stale_cleanup"
 
 
 def _import_handler():
-    """Import the handler module from lambda/stale_cleanup/."""
+    """Import the handler module from lambda/stale_cleanup/.
+
+    Injects a mock boto3 so the module can be imported without
+    the real AWS SDK installed.
+    """
+    mock_boto3 = MagicMock()
     sys.path.insert(0, str(HANDLER_DIR))
     try:
         if "handler" in sys.modules:
             del sys.modules["handler"]
-        return importlib.import_module("handler")
+        with patch.dict(sys.modules, {"boto3": mock_boto3}):
+            mod = importlib.import_module("handler")
+        return mod
     finally:
         sys.path.pop(0)
 
@@ -51,11 +58,12 @@ def test_handler_has_handle_function():
 # ---------------------------------------------------------------------------
 
 
-@patch("handler.boto3")
-def test_handler_returns_expected_response_format(mock_boto3):
+def test_handler_returns_expected_response_format():
     """handle() must return a dict with 'statusCode' and 'body' keys."""
-    mock_boto3.client.return_value.get_paginator.return_value.paginate.return_value = []
     mod = _import_handler()
+    mock_boto3 = MagicMock()
+    mock_boto3.client.return_value.get_paginator.return_value.paginate.return_value = []
+    mod.boto3 = mock_boto3
     result = mod.handle({}, {})
     assert isinstance(result, dict), "handle() must return a dict"
     assert "statusCode" in result, "response must contain 'statusCode'"
