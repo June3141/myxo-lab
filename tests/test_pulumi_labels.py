@@ -5,10 +5,10 @@ from pathlib import Path
 INFRA_DIR = Path(__file__).resolve().parent.parent / "infra"
 
 EXPECTED_LABELS = [
-    "state: pseudopod-ready",
-    "state: pseudopod-active",
-    "state: pseudopod-abort",
-    "state: pseudopod-complete",
+    "state: myxo-ready",
+    "state: myxo-active",
+    "state: myxo-abort",
+    "state: myxo-complete",
     "state: researcher-review",
     "state: scheduled-experiment",
     "state: hypothesis-hold",

@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   execute-procedure:
-    if: "github.event.label.name == 'state: pseudopod-ready'"
+    if: "github.event.label.name == 'state: myxo-ready'"
     runs-on: ubuntu-latest
 
     steps:
@@ -22,8 +22,8 @@ jobs:
         run: |
           gh issue edit "$ISSUE_NUMBER" \
             --repo "$REPO" \
-            --remove-label "state: pseudopod-ready" \
-            --add-label "state: pseudopod-active"
+            --remove-label "state: myxo-ready" \
+            --add-label "state: myxo-active"
 
       - uses: actions/checkout@v4
 
@@ -47,8 +47,8 @@ jobs:
         run: |
           gh issue edit "$ISSUE_NUMBER" \
             --repo "$REPO" \
-            --remove-label "state: pseudopod-active" \
-            --add-label "state: pseudopod-complete"
+            --remove-label "state: myxo-active" \
+            --add-label "state: myxo-complete"
 
       - name: Mark abort on failure
         if: failure()
@@ -59,5 +59,5 @@ jobs:
         run: |
           gh issue edit "$ISSUE_NUMBER" \
             --repo "$REPO" \
-            --remove-label "state: pseudopod-active" \
-            --add-label "state: pseudopod-abort"
+            --remove-label "state: myxo-active" \
+            --add-label "state: myxo-abort"

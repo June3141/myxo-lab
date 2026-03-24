@@ -18,7 +18,7 @@
 
 ---
 
-Myxo `/ˈmɪk.soʊ/` orchestrates AI coding agents through a laboratory-experiment metaphor: a **Researcher** designs hypotheses, **Protocols** decompose them into steps, and **Pseudopods** extend outward to explore and implement solutions — all verified by rigorous **Assays** before **Publication**.
+Myxo `/ˈmɪk.soʊ/` orchestrates AI coding agents through a laboratory-experiment metaphor: a **Researcher** designs hypotheses, **Protocols** decompose them into steps, and **Myxos** (worker agents) explore and implement solutions — all verified by rigorous **Assays** before **Publication**.
 
 ---
 
@@ -31,10 +31,10 @@ Myxo uses a naming convention drawn from slime mold biology and experimental sci
 | Role | Pronunciation | Description |
 |------|---------------|-------------|
 | **Researcher** | — | The human operator. Designs experiments and makes final decisions. |
-| **Protocol** | — | The director agent. Decomposes a Hypothesis into parallel tasks and assigns them to Pseudopods. |
-| **Pseudopod** | `/ˈsjuː.doʊ.pɒd/` | Worker agents — the extending "false feet" of a slime mold that explore the environment and bring results back. |
-| **Assay** | `/ˈæs.eɪ/` | The reviewer agent. Performs quality analysis on Pseudopod output, including code review and risk evaluation. |
-| **Scribe** | — | The explainer agent. Generates documentation and summaries of changes. |
+| **Protocol** | — | The director agent. Decomposes a Hypothesis into parallel tasks and assigns them to Myxos. |
+| **Myxo** | `/ˈmɪk.soʊ/` | Worker agents — the cultured slime molds that explore the environment and bring results back. |
+| **Assay** | `/ˈæs.eɪ/` | The reviewer agent. Performs quality analysis on Myxo output, including code review and risk evaluation. |
+| **Report** | — | The explainer agent. Generates documentation and summaries of changes (experiment reports). |
 
 ### Concepts
 
@@ -52,7 +52,7 @@ Myxo uses a naming convention drawn from slime mold biology and experimental sci
 | **Petri** | `/ˈpiː.tri/` | Preview / staging environment — an isolated dish for running experiments safely. |
 | **Publication** | — | Production environment — verified results released to the world. |
 | **LabNote** | — | Global shared memory (S3 JSON). Knowledge accumulated across all experiments. |
-| **FieldNote** | — | Per-repository memory. Observations specific to one codebase. |
+| **BenchNote** | — | Per-repository memory. Observations specific to one codebase (bench notes from the lab). |
 | **.myxo/** | — | Configuration directory at the repository root. Contains rules, protocols, and agent definitions. |
 
 ---
@@ -69,8 +69,8 @@ flowchart TD
     H["📋 Hypothesis (GitHub Issue)"]
     P["🧪 Protocol"]
     LN[("📓 LabNote\n(shared memory)")]
-    P1["🦠 Pseudopod"]
-    P2["🦠 Pseudopod"]
+    P1["🦠 Myxo"]
+    P2["🦠 Myxo"]
     P3["🦠 ···"]
     A["🔬 Assay"]
     PR["📊 PeerReview"]
@@ -141,7 +141,7 @@ flowchart TD
 - **Remember without a brain** — leaving chemical traces as external memory
 - **Split and merge** — dividing to explore in parallel, fusing to share findings
 
-This is exactly how Myxo's agents work: they extend pseudopods into a codebase, explore multiple approaches in parallel, leave traces (LabNotes) for future reference, and converge on the optimal solution — all without central command.
+This is exactly how Myxo's agents work: they extend into a codebase like cultured slime molds, explore multiple approaches in parallel, leave traces (LabNotes) for future reference, and converge on the optimal solution — all without central command.
 
 ---
 

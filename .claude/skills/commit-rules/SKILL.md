@@ -79,7 +79,7 @@ This will be used by the Protocol agent for task decomposition.
 ```
 
 ```
-test: ✅ add pseudopod execution tests
+test: ✅ add myxo execution tests
 
 Write failing tests first per TDD workflow.
 Tests cover spawn, execute, and report operations.
@@ -109,8 +109,8 @@ Refs #12
 Always separate test commits from implementation commits:
 
 ```
-test: ✅ add pseudopod execution tests          ← tests only (expected to fail)
-feat: ✨ implement pseudopod execution           ← implementation (tests pass)
+test: ✅ add myxo execution tests                ← tests only (expected to fail)
+feat: ✨ implement myxo execution                ← implementation (tests pass)
 refactor: ♻️ extract experiment validation logic ← refactor (tests still pass)
 ```
 

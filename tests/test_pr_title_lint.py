@@ -31,7 +31,7 @@ def test_valid_chore_title():
 
 
 def test_valid_test_title():
-    result = _run("test: ✅ add pseudopod execution tests")
+    result = _run("test: ✅ add myxo execution tests")
     assert result.returncode == 0
 
 
