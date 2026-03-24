@@ -24,15 +24,15 @@ user-invocable: false
 - Litmus test: can you describe what this file does in one sentence?
 - A dataclass + its associated logic may live in the same file
 - Examples from this codebase:
-  - `rate_limiter.py` — GitHub API rate limit parsing only
-  - `sanitizer.py` — secret detection only
+  - `src/myxo/rate_limiter.py` — GitHub API rate limiting: parse headers and log warnings
+  - `src/myxo/sanitizer.py` — secret handling: detect and redact sensitive values
 
 ## Layer Separation
 
 | Layer | Location | Responsibility | May depend on |
 |-------|----------|---------------|---------------|
-| CLI | `cli.py` | User I/O, Typer command definitions only | Domain |
-| Domain | `src/myxo/*.py` | Core business logic | (interfaces only) |
+| CLI | `src/myxo/cli.py` | User I/O, Typer command definitions only | Domain |
+| Domain | `src/myxo/*.py` (excluding `cli.py`) | Core business logic | (interfaces only) |
 | Infra | `infra/` | Pulumi resource definitions, cloud config | Domain |
 | Tests | `tests/` | 1:1 mapping with source (`test_{module}.py`) | Domain, CLI |
 
