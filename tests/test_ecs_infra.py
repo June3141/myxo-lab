@@ -51,12 +51,8 @@ def test_defines_iam_roles():
     """ecs.py must define IAM roles for task execution and task."""
     src = _ecs_source()
     assert "iam.Role(" in src, "ecs.py must define iam.Role"
-    assert "task_execution_role" in src or "task-execution-role" in src, (
-        "ecs.py must define a task execution role"
-    )
-    assert "task_role" in src or "task-role" in src, (
-        "ecs.py must define a task role"
-    )
+    assert "task_execution_role" in src or "task-execution-role" in src, "ecs.py must define a task execution role"
+    assert "task_role" in src or "task-role" in src, "ecs.py must define a task role"
 
 
 def test_defines_cloudwatch_log_group():
@@ -73,9 +69,7 @@ def test_defines_cloudwatch_log_group():
 def test_no_pseudopod_references():
     """All resource names must use 'myxo', not 'pseudopod'."""
     src = _ecs_source()
-    assert "pseudopod" not in src.lower(), (
-        "ecs.py must not reference 'pseudopod' — use 'myxo' instead"
-    )
+    assert "pseudopod" not in src.lower(), "ecs.py must not reference 'pseudopod' — use 'myxo' instead"
 
 
 def test_myxo_naming():
@@ -94,9 +88,7 @@ def test_myxo_naming():
 def test_main_imports_ecs_module():
     """__main__.py must import or reference the ECS module."""
     main_src = (INFRA_DIR / "__main__.py").read_text()
-    assert "ecs" in main_src.lower(), (
-        "__main__.py must import or reference the ECS module"
-    )
+    assert "ecs" in main_src.lower(), "__main__.py must import or reference the ECS module"
 
 
 # ---------------------------------------------------------------------------
@@ -108,12 +100,6 @@ def test_exports_key_outputs():
     """ecs.py must export cluster name, ECR URL, and task definition ARN."""
     src = _ecs_source()
     assert "pulumi.export(" in src, "ecs.py must export Pulumi outputs"
-    assert "cluster" in src.lower() and "export" in src.lower(), (
-        "ecs.py must export cluster-related output"
-    )
-    assert "ecr" in src.lower() and "url" in src.lower(), (
-        "ecs.py must export ECR URL"
-    )
-    assert "task" in src.lower() and "arn" in src.lower(), (
-        "ecs.py must export task definition ARN"
-    )
+    assert "cluster" in src.lower() and "export" in src.lower(), "ecs.py must export cluster-related output"
+    assert "ecr" in src.lower() and "url" in src.lower(), "ecs.py must export ECR URL"
+    assert "task" in src.lower() and "arn" in src.lower(), "ecs.py must export task definition ARN"
