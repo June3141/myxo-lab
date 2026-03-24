@@ -33,11 +33,9 @@ def _secrets_source() -> str:
 def test_references_actions_environment():
     """secrets.py must reference GitHub Actions environments."""
     src = _secrets_source()
-    assert (
-        "ActionsEnvironment" in src
-        or "RepositoryEnvironment" in src
-        or "actions_environment" in src
-    ), "secrets.py must reference environment definitions"
+    assert "ActionsEnvironment" in src or "RepositoryEnvironment" in src or "actions_environment" in src, (
+        "secrets.py must reference environment definitions"
+    )
 
 
 def test_defines_development_environment():
@@ -66,9 +64,9 @@ def test_defines_production_environment():
 def test_references_actions_secret():
     """secrets.py must reference GitHub Actions secrets."""
     src = _secrets_source()
-    assert (
-        "ActionsSecret" in src or "actions_secret" in src
-    ), "secrets.py must reference ActionsSecret or secret definitions"
+    assert "ActionsSecret" in src or "actions_secret" in src, (
+        "secrets.py must reference ActionsSecret or secret definitions"
+    )
 
 
 def test_defines_pulumi_access_token_secret():
@@ -99,9 +97,7 @@ def test_no_hardcoded_secret_values():
     src = _secrets_source()
     # Patterns that look like real secret values (long hex/base64 strings)
     suspicious = re.findall(r'["\'][A-Za-z0-9+/]{32,}["\']', src)
-    assert len(suspicious) == 0, (
-        f"secrets.py may contain hardcoded secret values: {suspicious}"
-    )
+    assert len(suspicious) == 0, f"secrets.py may contain hardcoded secret values: {suspicious}"
 
 
 def test_uses_pulumi_config_for_secrets():

@@ -21,11 +21,6 @@ aws_access_key_id = secrets_config.require_secret("AWS_ACCESS_KEY_ID")
 aws_secret_access_key = secrets_config.require_secret("AWS_SECRET_ACCESS_KEY")
 
 # ---------------------------------------------------------------------------
-# GitHub Repository (data source for environment attachment)
-# ---------------------------------------------------------------------------
-repo = github.get_repository(name=repo_name)
-
-# ---------------------------------------------------------------------------
 # GitHub Environments
 # ---------------------------------------------------------------------------
 ENVIRONMENTS = ["development", "staging", "production"]
