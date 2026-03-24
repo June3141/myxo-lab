@@ -14,10 +14,10 @@ repo_name = config.require("repo")
 # ---------------------------------------------------------------------------
 LABELS: dict[str, str] = {
     # state
-    "state: pseudopod-ready": "0e8a16",
-    "state: pseudopod-active": "1d76db",
-    "state: pseudopod-abort": "b60205",
-    "state: pseudopod-complete": "0e8a16",
+    "state: myxo-ready": "0e8a16",
+    "state: myxo-active": "1d76db",
+    "state: myxo-abort": "b60205",
+    "state: myxo-complete": "0e8a16",
     "state: researcher-review": "fbca04",
     "state: scheduled-experiment": "c5def5",
     "state: hypothesis-hold": "d4c5f9",

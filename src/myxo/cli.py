@@ -20,7 +20,7 @@ app = typer.Typer(
 
 _DEFAULT_CONFIG = '# Myxo repository configuration\nversion: "0.1"\n'
 _DEFAULT_RULES = "# Myxo Rules\n"
-_SUBDIRS = ("protocols", "procedures", "pseudopods")
+_SUBDIRS = ("protocols", "procedures", "myxos")
 
 
 @app.command()
