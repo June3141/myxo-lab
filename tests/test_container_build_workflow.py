@@ -59,9 +59,7 @@ def test_references_docker_build_in_run_steps():
         for step in job.get("steps", []):
             if "run" in step:
                 run_steps.append(step["run"])
-    assert any("docker build" in run for run in run_steps), (
-        "At least one run step must contain 'docker build'"
-    )
+    assert any("docker build" in run for run in run_steps), "At least one run step must contain 'docker build'"
 
 
 def test_no_expression_interpolation_in_run_blocks():
@@ -71,8 +69,7 @@ def test_no_expression_interpolation_in_run_blocks():
         for step in job.get("steps", []):
             if "run" in step:
                 assert "${{" not in step["run"], (
-                    f"run: blocks must not contain ${{{{ }}}} expressions; "
-                    f"use env: instead. Found in: {step['run']}"
+                    f"run: blocks must not contain ${{{{ }}}} expressions; use env: instead. Found in: {step['run']}"
                 )
 
 
