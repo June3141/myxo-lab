@@ -48,9 +48,7 @@ class TestDeprecatedAgentNames:
         for md_file in skills_dir.rglob("*.md"):
             content = md_file.read_text()
             # "Assay" as agent reference should be replaced with Microscope
-            assert "Assay" not in content, (
-                f"Found deprecated 'Assay' in {md_file.relative_to(ROOT)}"
-            )
+            assert "Assay" not in content, f"Found deprecated 'Assay' in {md_file.relative_to(ROOT)}"
 
 
 # --- New term presence ---
@@ -124,14 +122,14 @@ class TestMermaidDiagram:
         content = (ROOT / "README.md").read_text()
         assert "Fellow" in content
         # The old Protocol agent label in Mermaid should be gone
-        assert '🧪 Protocol' not in content
+        assert "🧪 Protocol" not in content
 
     @pytest.mark.small
     def test_mermaid_uses_microscope_not_assay(self):
         """In the execution flow, the reviewer agent should be Microscope."""
         content = (ROOT / "README.md").read_text()
         assert "Microscope" in content
-        assert '🔬 Assay' not in content
+        assert "🔬 Assay" not in content
 
 
 # --- Skill docs updated ---
@@ -142,21 +140,15 @@ class TestSkillDocsUpdated:
 
     @pytest.mark.small
     def test_pr_rules_uses_fellow(self):
-        content = (
-            ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md"
-        ).read_text()
+        content = (ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md").read_text()
         assert "Fellow" in content
 
     @pytest.mark.small
     def test_pr_rules_uses_microscope(self):
-        content = (
-            ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md"
-        ).read_text()
+        content = (ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md").read_text()
         assert "Microscope" in content
 
     @pytest.mark.small
     def test_commit_rules_uses_fellow(self):
-        content = (
-            ROOT / ".claude" / "skills" / "commit-rules" / "SKILL.md"
-        ).read_text()
+        content = (ROOT / ".claude" / "skills" / "commit-rules" / "SKILL.md").read_text()
         assert "Fellow" in content
