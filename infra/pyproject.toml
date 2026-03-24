@@ -1,0 +1,10 @@
+[project]
+name = "myxo-infra"
+version = "0.1.0"
+description = "Myxo Lab infrastructure (Pulumi)"
+requires-python = ">=3.13"
+dependencies = [
+    "pulumi>=3.0",
+    "pulumi-aws>=6.0",
+    "pulumi-github>=6.0",
+]
