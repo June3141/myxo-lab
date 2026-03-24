@@ -18,34 +18,49 @@
 
 ---
 
-Myxo `/ˈmɪk.soʊ/` orchestrates AI coding agents through a laboratory-experiment metaphor: a **Researcher** designs hypotheses, **Protocols** decompose them into steps, and **Myxos** (worker agents) explore and implement solutions — all verified by rigorous **Assays** before **Publication**.
+Myxo `/ˈmɪk.soʊ/` orchestrates AI coding agents through a laboratory-experiment metaphor: a **Researcher** designs hypotheses, **Fellows** decompose them into steps, and **Myxos** (worker agents) explore and implement solutions — all verified by rigorous **Microscope** analysis before **Publication**.
 
 ---
 
 ## Terminology
 
-Myxo uses a naming convention drawn from slime mold biology and experimental science.
+Myxo uses a naming convention drawn from slime mold biology and experimental science, organized into a **4-layer model**.
 
-### Roles
+### 4-Layer Model
+
+| Layer | What it represents | Examples |
+|-------|--------------------|----------|
+| **Person** | Human or autonomous agents with intent | Researcher, Fellow, Myxo |
+| **Device** | Tools and instruments agents use | Microscope, Recorder |
+| **Artifact** | Documents, data, and work products | Hypothesis, Protocol, Experiment, PeerReview |
+| **Environment** | Where work happens and memory lives | Petri, Publication, LabNote, BenchNote |
+
+### Person Layer
 
 | Role | Pronunciation | Description |
 |------|---------------|-------------|
 | **Researcher** | — | The human operator. Designs experiments and makes final decisions. |
-| **Protocol** | — | The director agent. Decomposes a Hypothesis into parallel tasks and assigns them to Myxos. |
+| **Fellow** | — | The director agent. Decomposes a Hypothesis into parallel tasks and assigns them to Myxos. |
 | **Myxo** | `/ˈmɪk.soʊ/` | Worker agents — the cultured slime molds that explore the environment and bring results back. |
-| **Assay** | `/ˈæs.eɪ/` | The reviewer agent. Performs quality analysis on Myxo output, including code review and risk evaluation. |
-| **Report** | — | The explainer agent. Generates documentation and summaries of changes (experiment reports). |
 
-### Concepts
+### Device Layer
 
-| Concept | Pronunciation | Description |
-|---------|---------------|-------------|
+| Device | Description |
+|--------|-------------|
+| **Microscope** | The reviewer instrument. Performs quality analysis on Myxo output, including code review and risk evaluation. |
+| **Recorder** | The documentation instrument. Generates summaries of changes (experiment reports). |
+
+### Artifact Layer
+
+| Artifact | Pronunciation | Description |
+|----------|---------------|-------------|
 | **Hypothesis** | — | A task definition (GitHub Issue). "We hypothesize this can be solved." |
+| **Protocol** | — | A procedure document defining workflow steps. Stored in `.myxo-lab/protocols/`. |
 | **Procedure** | — | A workflow definition executed in Temporal. The concrete steps to test a Hypothesis. |
 | **PeerReview** | — | The merge-decision evaluator. Classifies PRs as `AUTO_MERGE`, `HUMAN_SUGGESTED`, or `HUMAN_REQUIRED`. |
 | **Experiment** | — | A unit of work. A Hypothesis being actively tested. |
 
-### Environments & Memory
+### Environment Layer
 
 | Name | Pronunciation | Description |
 |------|---------------|-------------|
@@ -67,12 +82,12 @@ How a Hypothesis travels from idea to production.
 flowchart TD
     R["🧑‍🔬 Researcher (Human)"]
     H["📋 Hypothesis (GitHub Issue)"]
-    P["🧪 Protocol"]
+    P["🧑‍🔬 Fellow"]
     LN[("📓 LabNote\n(shared memory)")]
     P1["🦠 Myxo"]
     P2["🦠 Myxo"]
     P3["🦠 ···"]
-    A["🔬 Assay"]
+    A["🔬 Microscope"]
     PR["📊 PeerReview"]
     PUB["🌐 Publication"]
     RN["🔔 Researcher\nnotification"]
