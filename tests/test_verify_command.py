@@ -1,4 +1,4 @@
-"""Tests for myxo verify command."""
+"""Tests for mxl verify command."""
 
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -16,8 +16,8 @@ runner = CliRunner()
 
 
 def _create_myxo_dir(base: Path) -> Path:
-    """Create a minimal .myxo/ directory with a config that specifies a repo."""
-    myxo = base / ".myxo"
+    """Create a minimal .myxo-lab/ directory with a config that specifies a repo."""
+    myxo = base / ".myxo-lab"
     myxo.mkdir()
     (myxo / "config.yaml").write_text(
         'version: "0.1"\n'
@@ -45,11 +45,11 @@ def _create_myxo_dir(base: Path) -> Path:
 
 
 def test_verify_fails_without_myxo_dir(tmp_path: Path, monkeypatch):
-    """verify should fail with exit code 1 when .myxo/ does not exist."""
+    """verify should fail with exit code 1 when .myxo-lab/ does not exist."""
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(app, ["verify"])
     assert result.exit_code == 1
-    assert ".myxo" in result.stdout.lower()
+    assert ".myxo-lab" in result.stdout.lower()
 
 
 # ---------------------------------------------------------------------------

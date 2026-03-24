@@ -7,7 +7,7 @@ import pytest
 from myxo.protocol_loader import REQUIRED_FRONTMATTER_KEYS
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PROTOCOLS_DIR = REPO_ROOT / ".myxo" / "protocols"
+PROTOCOLS_DIR = REPO_ROOT / ".myxo-lab" / "protocols"
 
 EXPECTED_PROTOCOLS = ["create-pr.md", "run-migration.md", "write-test.md"]
 
@@ -20,7 +20,7 @@ EXPECTED_PROTOCOLS = ["create-pr.md", "run-migration.md", "write-test.md"]
 @pytest.mark.parametrize("filename", EXPECTED_PROTOCOLS)
 def test_protocol_file_exists(filename: str) -> None:
     path = PROTOCOLS_DIR / filename
-    assert path.exists(), f"{filename} should exist in .myxo/protocols/"
+    assert path.exists(), f"{filename} should exist in .myxo-lab/protocols/"
 
 
 @pytest.mark.parametrize("filename", EXPECTED_PROTOCOLS)
