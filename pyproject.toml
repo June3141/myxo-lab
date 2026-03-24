@@ -6,6 +6,7 @@ requires-python = ">=3.13"
 dependencies = [
     "typer>=0.12",
     "httpx",
+    "pyjwt[crypto]",
     "pyyaml",
     "rich",
     "pulumi>=3.227.0",
