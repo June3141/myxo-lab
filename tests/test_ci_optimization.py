@@ -58,6 +58,7 @@ def test_lint_workflow_paths_include_src_and_tests():
     assert "src/" in path_str or "src/**" in path_str, "paths should include src/"
     assert "tests/" in path_str or "tests/**" in path_str, "paths should include tests/"
     assert "pyproject.toml" in path_str, "paths should include pyproject.toml"
+    assert "lint.yml" in path_str, "paths should include the workflow file itself"
 
 
 # ---------------------------------------------------------------------------
