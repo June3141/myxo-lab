@@ -103,11 +103,11 @@ class TestDefaultMarkerBehavior:
 class TestCIConfiguration:
     """Verify CI workflow runs only small and medium tests by default."""
 
-    def test_lint_yml_uses_marker_filter(self):
-        """The test job in lint.yml should filter by small/medium markers."""
-        lint_yml = ROOT / ".github" / "workflows" / "lint.yml"
-        assert lint_yml.is_file(), "lint.yml should exist"
-        content = lint_yml.read_text()
+    def test_ci_workflows_use_marker_filter(self):
+        """The reusable CI workflow should filter by small/medium markers."""
+        reusable = ROOT / ".github" / "workflows" / "reusable-python-ci.yml"
+        assert reusable.is_file(), "reusable-python-ci.yml should exist"
+        content = reusable.read_text()
         # Should use -m flag to select small and medium tests
         assert "-m" in content
         assert "small" in content

@@ -9,18 +9,13 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/lint.yml"
+      - ".github/workflows/reusable-python-ci.yml"
 
 jobs:
-  ruff:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.13"
-          enable-cache: true
-      - run: uv run ruff check src/ tests/
-      - run: uv run ruff format --check src/ tests/
+  ci:
+    uses: ./.github/workflows/reusable-python-ci.yml
+    with:
+      python-version: "3.13"
 
   typecheck:
     runs-on: ubuntu-latest
@@ -31,13 +26,3 @@ jobs:
           python-version: "3.13"
           enable-cache: true
       - run: uv run ty check src/
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.13"
-          enable-cache: true
-      - run: uv run pytest -m "small or medium"
