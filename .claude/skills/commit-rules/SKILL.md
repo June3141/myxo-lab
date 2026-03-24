@@ -75,7 +75,7 @@ Commonly used:
 feat: ✨ add hypothesis tracking endpoint
 
 The /hypotheses endpoint enables tracking of active experiments.
-This will be used by the Protocol agent for task decomposition.
+This will be used by the Fellow agent for task decomposition.
 ```
 
 ```
