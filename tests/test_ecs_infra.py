@@ -106,3 +106,39 @@ def test_default_capacity_provider_strategy():
     """ecs.py must define a default capacity provider strategy."""
     src = _ecs_source()
     assert "default_capacity_provider_strategies" in src
+
+
+# ---------------------------------------------------------------------------
+# EFS Nix cache (#137)
+# ---------------------------------------------------------------------------
+
+
+def test_defines_efs_file_system():
+    """ecs.py must define an EFS FileSystem resource."""
+    src = _ecs_source()
+    assert "aws.efs.FileSystem(" in src, "ecs.py must define aws.efs.FileSystem"
+
+
+def test_defines_efs_access_point():
+    """ecs.py must define an EFS AccessPoint resource."""
+    src = _ecs_source()
+    assert "aws.efs.AccessPoint(" in src, "ecs.py must define aws.efs.AccessPoint"
+
+
+def test_task_definition_has_volume():
+    """Task definition must include a volume configuration for EFS."""
+    src = _ecs_source()
+    assert "nix-cache" in src, "Task definition must reference nix-cache volume"
+    assert "efs_volume_configuration" in src or "EfsVolumeConfiguration" in src
+
+
+def test_efs_resources_use_myxo_naming():
+    """EFS resources must use 'myxo' in their names."""
+    src = _ecs_source()
+    assert "myxo-nix-cache" in src, "EFS file system must be named myxo-nix-cache"
+
+
+def test_exports_efs_file_system_id():
+    """ecs.py must export the EFS file system ID."""
+    src = _ecs_source()
+    assert "efs_file_system_id" in src, "Must export efs_file_system_id"
