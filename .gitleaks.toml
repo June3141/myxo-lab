@@ -1,0 +1,12 @@
+# Gitleaks configuration for myxo-lab
+# https://github.com/gitleaks/gitleaks
+
+title = "myxo-lab gitleaks config"
+
+[allowlist]
+description = "Global allowlist for false positives"
+paths = [
+    'tests/test_sanitizer\.py',
+    '\.myxo-lab/protocols/.*\.md',
+    'assets/logo-.*\.png',
+]
