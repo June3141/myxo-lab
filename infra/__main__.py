@@ -3,6 +3,8 @@
 import pulumi
 import pulumi_github as github
 
+import infra.ecs  # noqa: F401 — ECS Fargate resources
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------

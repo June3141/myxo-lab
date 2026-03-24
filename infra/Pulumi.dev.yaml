@@ -1,3 +1,4 @@
 config:
+  aws:region: ap-northeast-1
   github:owner: June3141
   myxo-lab:repo: myxo-lab
