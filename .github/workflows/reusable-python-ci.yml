@@ -3,15 +3,15 @@ name: Reusable Python CI
 on:
   workflow_call:
     inputs:
-      python-version:
+      python_version:
         description: "Python version to use"
         type: string
         default: "3.13"
-      run-tests:
+      run_tests:
         description: "Whether to run pytest"
         type: boolean
         default: true
-      run-lint:
+      run_lint:
         description: "Whether to run ruff lint & format checks"
         type: boolean
         default: true
@@ -21,13 +21,13 @@ permissions:
 
 jobs:
   lint:
-    if: inputs.run-lint
+    if: inputs.run_lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: ${{ inputs.python_version }}
           enable-cache: true
       - name: Ruff check
         run: uv run ruff check src/ tests/
@@ -35,13 +35,13 @@ jobs:
         run: uv run ruff format --check src/ tests/
 
   test:
-    if: inputs.run-tests
+    if: inputs.run_tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: ${{ inputs.python_version }}
           enable-cache: true
       - name: Run tests
         run: uv run pytest -m "small or medium"

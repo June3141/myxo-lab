@@ -4,9 +4,7 @@ from pathlib import Path
 
 import yaml
 
-REUSABLE_CI_PATH = (
-    Path(__file__).parent.parent / ".github" / "workflows" / "reusable-python-ci.yml"
-)
+REUSABLE_CI_PATH = Path(__file__).parent.parent / ".github" / "workflows" / "reusable-python-ci.yml"
 LINT_PATH = Path(__file__).parent.parent / ".github" / "workflows" / "lint.yml"
 
 
@@ -45,27 +43,27 @@ def test_workflow_call_has_python_version_input():
     data = _load_workflow(REUSABLE_CI_PATH)
     on_block = _get_on_block(data)
     inputs = on_block["workflow_call"].get("inputs", {})
-    pv = inputs.get("python-version", {})
-    assert pv, "Must define python-version input"
-    assert pv.get("default") == "3.13", "python-version default must be '3.13'"
+    pv = inputs.get("python_version", {})
+    assert pv, "Must define python_version input"
+    assert pv.get("default") == "3.13", "python_version default must be '3.13'"
 
 
 def test_workflow_call_has_run_tests_input():
     data = _load_workflow(REUSABLE_CI_PATH)
     on_block = _get_on_block(data)
     inputs = on_block["workflow_call"].get("inputs", {})
-    rt = inputs.get("run-tests", {})
-    assert rt, "Must define run-tests input"
-    assert rt.get("default") is True, "run-tests default must be true"
+    rt = inputs.get("run_tests", {})
+    assert rt, "Must define run_tests input"
+    assert rt.get("default") is True, "run_tests default must be true"
 
 
 def test_workflow_call_has_run_lint_input():
     data = _load_workflow(REUSABLE_CI_PATH)
     on_block = _get_on_block(data)
     inputs = on_block["workflow_call"].get("inputs", {})
-    rl = inputs.get("run-lint", {})
-    assert rl, "Must define run-lint input"
-    assert rl.get("default") is True, "run-lint default must be true"
+    rl = inputs.get("run_lint", {})
+    assert rl, "Must define run_lint input"
+    assert rl.get("default") is True, "run_lint default must be true"
 
 
 # ── jobs ──
@@ -139,9 +137,7 @@ def test_setup_uv_enables_cache():
         for step in job.get("steps", []):
             if "setup-uv" in step.get("uses", ""):
                 with_block = step.get("with", {})
-                assert with_block.get("enable-cache") is True, (
-                    "setup-uv must have enable-cache: true"
-                )
+                assert with_block.get("enable-cache") is True, "setup-uv must have enable-cache: true"
 
 
 # ── permissions ──
@@ -163,8 +159,7 @@ def test_no_expression_interpolation_in_run_blocks():
         for step in job.get("steps", []):
             if "run" in step:
                 assert "${{" not in step["run"], (
-                    f"run: blocks must not contain ${{{{ }}}} expressions; "
-                    f"use env: instead. Found in: {step['run']}"
+                    f"run: blocks must not contain ${{{{ }}}} expressions; use env: instead. Found in: {step['run']}"
                 )
 
 
