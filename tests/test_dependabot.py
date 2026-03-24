@@ -1,0 +1,81 @@
+"""Tests for .github/dependabot.yml configuration."""
+
+from pathlib import Path
+
+import yaml
+
+REPO_ROOT = Path(__file__).parent.parent
+DEPENDABOT_PATH = REPO_ROOT / ".github" / "dependabot.yml"
+
+
+def test_dependabot_file_exists():
+    """dependabot.yml must exist in .github/."""
+    assert DEPENDABOT_PATH.is_file(), "Missing .github/dependabot.yml"
+
+
+def test_dependabot_is_valid_yaml():
+    """dependabot.yml must be parseable YAML."""
+    content = DEPENDABOT_PATH.read_text()
+    data = yaml.safe_load(content)
+    assert isinstance(data, dict), "dependabot.yml should be a YAML mapping"
+
+
+def test_dependabot_has_version():
+    """dependabot.yml must declare version 2."""
+    data = yaml.safe_load(DEPENDABOT_PATH.read_text())
+    assert data.get("version") == 2
+
+
+def test_dependabot_has_updates():
+    """dependabot.yml must contain an updates list."""
+    data = yaml.safe_load(DEPENDABOT_PATH.read_text())
+    assert isinstance(data.get("updates"), list)
+    assert len(data["updates"]) >= 2
+
+
+def _get_ecosystem(data: dict, ecosystem: str) -> dict | None:
+    """Return the update entry for a given ecosystem, or None."""
+    for entry in data.get("updates", []):
+        if entry.get("package-ecosystem") == ecosystem:
+            return entry
+    return None
+
+
+def test_pip_ecosystem_configured():
+    """pip ecosystem must be configured for Python dependencies."""
+    data = yaml.safe_load(DEPENDABOT_PATH.read_text())
+    entry = _get_ecosystem(data, "pip")
+    assert entry is not None, "Missing pip ecosystem configuration"
+
+
+def test_github_actions_ecosystem_configured():
+    """github-actions ecosystem must be configured."""
+    data = yaml.safe_load(DEPENDABOT_PATH.read_text())
+    entry = _get_ecosystem(data, "github-actions")
+    assert entry is not None, "Missing github-actions ecosystem configuration"
+
+
+def test_target_branch_is_develop():
+    """All ecosystems must target the develop branch."""
+    data = yaml.safe_load(DEPENDABOT_PATH.read_text())
+    for entry in data["updates"]:
+        assert entry.get("target-branch") == "develop", (
+            f"Ecosystem {entry.get('package-ecosystem')} should target develop, got {entry.get('target-branch')}"
+        )
+
+
+def test_schedule_interval_defined():
+    """All ecosystems must define a schedule interval."""
+    data = yaml.safe_load(DEPENDABOT_PATH.read_text())
+    for entry in data["updates"]:
+        schedule = entry.get("schedule", {})
+        assert "interval" in schedule, f"Ecosystem {entry.get('package-ecosystem')} must define schedule.interval"
+
+
+def test_open_pull_requests_limit():
+    """All ecosystems should limit open PRs to 5."""
+    data = yaml.safe_load(DEPENDABOT_PATH.read_text())
+    for entry in data["updates"]:
+        assert entry.get("open-pull-requests-limit") == 5, (
+            f"Ecosystem {entry.get('package-ecosystem')} should limit open PRs to 5"
+        )
