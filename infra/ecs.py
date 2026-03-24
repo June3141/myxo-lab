@@ -11,6 +11,9 @@ import json
 import pulumi
 import pulumi_aws as aws
 
+config = pulumi.Config("aws")
+_region = config.require("region")
+
 # --- providers ---------------------------------------------------------------
 ecs = aws.ecs
 ecr = aws.ecr
@@ -29,7 +32,7 @@ repo = ecr.Repository(
     "myxo-base-repo",
     name="myxo-base",
     image_tag_mutability="MUTABLE",
-    force_delete=True,  # PoC convenience — remove in production
+    force_delete=False,
 )
 
 # --- ECS Cluster -------------------------------------------------------------
@@ -103,7 +106,7 @@ task_definition = ecs.TaskDefinition(
                         "logDriver": "awslogs",
                         "options": {
                             "awslogs-group": args[1],
-                            "awslogs-region": aws.get_region().name,
+                            "awslogs-region": _region,
                             "awslogs-stream-prefix": "myxo",
                         },
                     },
