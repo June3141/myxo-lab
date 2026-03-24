@@ -71,7 +71,7 @@ Assign the appropriate milestone based on the issue being closed:
 | Milestone | When |
 |-----------|------|
 | `Phase 1: PoC` | Foundation, CLI, Pulumi, GitHub Actions, MCP, security |
-| `Phase 2: 本番化` | Temporal, Protocol/Assay agents, GitHub App |
+| `Phase 2: 本番化` | Temporal, Fellow/Microscope agents, GitHub App |
 | `Phase 3: 拡張` | OSS release, cost monitoring, auto-rollback |
 
 ## Assignee
