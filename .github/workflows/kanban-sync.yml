@@ -1,0 +1,78 @@
+name: Kanban Sync
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: read
+  repository-projects: write
+
+jobs:
+  move-card:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine target column
+        id: column
+        env:
+          LABEL_NAME: ${{ github.event.label.name }}
+        run: |
+          case "${LABEL_NAME}" in
+            "state: myxo-ready")     echo "column=Ready"       >> "$GITHUB_OUTPUT" ;;
+            "state: myxo-active")    echo "column=In Progress"  >> "$GITHUB_OUTPUT" ;;
+            "state: myxo-abort")     echo "column=Blocked"      >> "$GITHUB_OUTPUT" ;;
+            "state: myxo-complete")  echo "column=Review"       >> "$GITHUB_OUTPUT" ;;
+            "state: researcher-review") echo "column=Review"    >> "$GITHUB_OUTPUT" ;;
+            *)                       echo "column="             >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Move issue on project board
+        if: steps.column.outputs.column != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TARGET_COLUMN: ${{ steps.column.outputs.column }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          PROJECT_NUMBER=$(gh project list --owner "${REPO_OWNER}" --format json \
+            | jq -r '.projects[0].number // empty')
+
+          if [ -z "${PROJECT_NUMBER}" ]; then
+            echo "::warning::No project board found for owner ${REPO_OWNER}. Skipping."
+            exit 0
+          fi
+
+          ITEM_ID=$(gh project item-list "${PROJECT_NUMBER}" \
+            --owner "${REPO_OWNER}" --format json \
+            | jq -r --arg num "${ISSUE_NUMBER}" --arg repo "${REPO_NAME}" \
+              '.items[] | select(.content.number == ($num | tonumber) and .content.repository == $repo) | .id // empty')
+
+          if [ -z "${ITEM_ID}" ]; then
+            echo "::warning::Issue #${ISSUE_NUMBER} is not on project board ${PROJECT_NUMBER}. Skipping."
+            exit 0
+          fi
+
+          FIELD_ID=$(gh project field-list "${PROJECT_NUMBER}" \
+            --owner "${REPO_OWNER}" --format json \
+            | jq -r 'first(.fields[] | select(.name == "Status")) | .id')
+          OPTION_ID=$(gh project field-list "${PROJECT_NUMBER}" \
+            --owner "${REPO_OWNER}" --format json \
+            | jq -r --arg col "${TARGET_COLUMN}" \
+              'first(.fields[] | select(.name == "Status")) | .options[] | select(.name == $col) | .id')
+
+          if [ -z "${FIELD_ID}" ] || [ -z "${OPTION_ID}" ]; then
+            echo "::warning::Could not find Status field or column '${TARGET_COLUMN}'. Skipping."
+            exit 0
+          fi
+
+          PROJECT_ID=$(gh project view "${PROJECT_NUMBER}" \
+            --owner "${REPO_OWNER}" --format json | jq -r '.id')
+
+          gh project item-edit \
+            --project-id "${PROJECT_ID}" \
+            --id "${ITEM_ID}" \
+            --field-id "${FIELD_ID}" \
+            --single-select-option-id "${OPTION_ID}"
+
+          echo "Moved issue #${ISSUE_NUMBER} to '${TARGET_COLUMN}' column."
