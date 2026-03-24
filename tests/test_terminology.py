@@ -23,7 +23,7 @@ class TestDeprecatedAgentNames:
     @pytest.mark.small
     def test_readme_no_assay_as_agent(self):
         """Assay (agent) should be renamed to Microscope in README."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         # "Assay" should not appear as a role/agent name
         assert "**Assay**" not in content
         assert "Assay" not in content
@@ -31,14 +31,14 @@ class TestDeprecatedAgentNames:
     @pytest.mark.small
     def test_readme_no_report_as_agent(self):
         """Report (agent) should be renamed to Recorder in README."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         # "Report" as an agent role should not appear
         assert "**Report**" not in content
 
     @pytest.mark.small
     def test_readme_no_scribe_as_agent(self):
         """Scribe should not appear anywhere in README."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "Scribe" not in content
 
     @pytest.mark.small
@@ -46,7 +46,7 @@ class TestDeprecatedAgentNames:
         """Assay agent name should not appear in skill docs."""
         skills_dir = ROOT / ".claude" / "skills"
         for md_file in skills_dir.rglob("*.md"):
-            content = md_file.read_text()
+            content = md_file.read_text(encoding="utf-8")
             # "Assay" as agent reference should be replaced with Microscope
             assert "Assay" not in content, f"Found deprecated 'Assay' in {md_file.relative_to(ROOT)}"
 
@@ -60,25 +60,25 @@ class TestNewAgentNames:
     @pytest.mark.small
     def test_readme_has_microscope_role(self):
         """Microscope should appear as a role in README."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "**Microscope**" in content
 
     @pytest.mark.small
     def test_readme_has_recorder_role(self):
         """Recorder should appear as a role in README."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "**Recorder**" in content
 
     @pytest.mark.small
     def test_readme_has_fellow_role(self):
         """Fellow should appear as a role in README."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "**Fellow**" in content
 
     @pytest.mark.small
     def test_readme_protocol_still_exists_as_artifact(self):
         """Protocol should still exist as an artifact/document concept."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "Protocol" in content
 
 
@@ -90,22 +90,22 @@ class TestFourLayerModel:
 
     @pytest.mark.small
     def test_readme_has_person_layer(self):
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "Person" in content
 
     @pytest.mark.small
     def test_readme_has_device_layer(self):
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "Device" in content
 
     @pytest.mark.small
     def test_readme_has_artifact_layer(self):
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "Artifact" in content
 
     @pytest.mark.small
     def test_readme_has_environment_layer(self):
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         # "Environment" already in the section header
         assert "Environment" in content
 
@@ -119,7 +119,7 @@ class TestMermaidDiagram:
     @pytest.mark.small
     def test_mermaid_uses_fellow_not_protocol(self):
         """In the execution flow, the director agent should be Fellow."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "Fellow" in content
         # The old Protocol agent label in Mermaid should be gone
         assert "🧪 Protocol" not in content
@@ -127,7 +127,7 @@ class TestMermaidDiagram:
     @pytest.mark.small
     def test_mermaid_uses_microscope_not_assay(self):
         """In the execution flow, the reviewer agent should be Microscope."""
-        content = (ROOT / "README.md").read_text()
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
         assert "Microscope" in content
         assert "🔬 Assay" not in content
 
@@ -140,15 +140,15 @@ class TestSkillDocsUpdated:
 
     @pytest.mark.small
     def test_pr_rules_uses_fellow(self):
-        content = (ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md").read_text()
+        content = (ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md").read_text(encoding="utf-8")
         assert "Fellow" in content
 
     @pytest.mark.small
     def test_pr_rules_uses_microscope(self):
-        content = (ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md").read_text()
+        content = (ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md").read_text(encoding="utf-8")
         assert "Microscope" in content
 
     @pytest.mark.small
     def test_commit_rules_uses_fellow(self):
-        content = (ROOT / ".claude" / "skills" / "commit-rules" / "SKILL.md").read_text()
+        content = (ROOT / ".claude" / "skills" / "commit-rules" / "SKILL.md").read_text(encoding="utf-8")
         assert "Fellow" in content
