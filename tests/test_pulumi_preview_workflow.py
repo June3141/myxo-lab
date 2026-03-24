@@ -24,7 +24,9 @@ def test_workflow_file_exists_and_is_valid_yaml():
 def test_trigger_on_pull_request_with_paths_filter():
     """Workflow triggers on pull_request with paths filter for infra/**."""
     wf = _load_workflow()
-    pr_trigger = wf["on"]["pull_request"]
+    # PyYAML parses bare `on` as boolean True
+    pr_trigger = wf.get("on") or wf.get(True)
+    pr_trigger = pr_trigger["pull_request"]
     assert "opened" in pr_trigger["types"]
     assert "synchronize" in pr_trigger["types"]
     assert "reopened" in pr_trigger["types"]
