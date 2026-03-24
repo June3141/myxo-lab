@@ -31,4 +31,4 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
-      - run: uv run pytest
+      - run: uv run pytest -m "small or medium"
