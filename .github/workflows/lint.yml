@@ -15,7 +15,7 @@ jobs:
   ci:
     uses: ./.github/workflows/reusable-python-ci.yml
     with:
-      python-version: "3.13"
+      python_version: "3.13"
 
   typecheck:
     runs-on: ubuntu-latest
