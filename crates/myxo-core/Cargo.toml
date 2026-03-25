@@ -10,7 +10,6 @@ path = "src/lib.rs"
 
 [dependencies]
 glob-match = "0.2"
-hex = "0.4"
 octocrab = "0.44"
 regex = "1"
 serde = { version = "1", features = ["derive"] }

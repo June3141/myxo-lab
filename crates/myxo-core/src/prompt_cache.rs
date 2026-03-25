@@ -20,7 +20,7 @@ impl CacheStats {
 
 pub struct PromptCacheManager {
     cacheable_prefixes: Vec<String>,
-    seen_hashes: HashSet<String>,
+    seen_hashes: HashSet<[u8; 32]>,
     max_history: usize,
     cache_hits: u64,
     cache_misses: u64,
@@ -33,6 +33,7 @@ impl PromptCacheManager {
     }
 
     pub fn with_max_history(cacheable_prefixes: Vec<String>, max_history: usize) -> Self {
+        assert!(max_history > 0, "max_history must be greater than 0");
         Self {
             cacheable_prefixes,
             seen_hashes: HashSet::new(),
@@ -53,7 +54,11 @@ impl PromptCacheManager {
     }
 
     pub fn track(&mut self, content: &str) {
-        let hash = hex::encode(Sha256::digest(content.as_bytes()));
+        if !self.is_cacheable(content) {
+            return;
+        }
+
+        let hash: [u8; 32] = Sha256::digest(content.as_bytes()).into();
         self.total_requests += 1;
 
         if self.seen_hashes.contains(&hash) {
@@ -109,7 +114,7 @@ mod tests {
 
     #[test]
     fn stats_hit_rate() {
-        let mut cache = PromptCacheManager::new(vec![]);
+        let mut cache = PromptCacheManager::new(vec!["a".into()]);
         assert_eq!(cache.stats().hit_rate(), 0.0);
 
         cache.track("a");
@@ -119,11 +124,24 @@ mod tests {
 
     #[test]
     fn max_history_clears_on_overflow() {
-        let mut cache = PromptCacheManager::with_max_history(vec![], 2);
+        let mut cache = PromptCacheManager::with_max_history(vec!["".into()], 2);
         cache.track("a");
         cache.track("b");
         cache.track("c");
         cache.track("a");
         assert_eq!(cache.stats().cache_hits, 0);
+    }
+
+    #[test]
+    fn track_skips_non_cacheable() {
+        let mut cache = PromptCacheManager::new(vec!["Log".into()]);
+        cache.track("not cacheable");
+        assert_eq!(cache.stats().total_requests, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "max_history must be greater than 0")]
+    fn zero_max_history_panics() {
+        PromptCacheManager::with_max_history(vec![], 0);
     }
 }

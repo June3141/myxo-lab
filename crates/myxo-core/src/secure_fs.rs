@@ -20,7 +20,13 @@ impl SecureFilesystem {
     pub fn check_access(&self, path: &str) -> bool {
         let path = path.replace('\\', "/");
 
-        if self.project_root.is_none() && path.starts_with('/') {
+        // Reject absolute paths (Unix and Windows) when no project root
+        if self.project_root.is_none() && is_absolute(&path) {
+            return false;
+        }
+
+        // Reject path traversal attempts
+        if has_traversal(&path) {
             return false;
         }
 
@@ -50,7 +56,7 @@ impl SecureFilesystem {
             return true;
         };
 
-        let resolved = if path.starts_with('/') {
+        let resolved = if is_absolute(path) {
             path.to_string()
         } else {
             format!("{}/{}", root.trim_end_matches('/'), path)
@@ -62,15 +68,12 @@ impl SecureFilesystem {
 
     fn matches_any(&self, path: &str, patterns: &[String]) -> bool {
         let filename = path.rsplit('/').next().unwrap_or(path);
+        let parts: Vec<&str> = path.split('/').collect();
 
         for pattern in patterns {
-            if glob_match(pattern, path) {
+            if glob_match(pattern, path) || glob_match(pattern, filename) {
                 return true;
             }
-            if glob_match(pattern, filename) {
-                return true;
-            }
-            let parts: Vec<&str> = path.split('/').collect();
             for i in 0..parts.len() {
                 let sub = parts[i..].join("/");
                 if glob_match(pattern, &sub) {
@@ -80,6 +83,15 @@ impl SecureFilesystem {
         }
         false
     }
+}
+
+fn is_absolute(path: &str) -> bool {
+    path.starts_with('/')
+        || (path.len() >= 3 && path.as_bytes()[1] == b':' && path.as_bytes()[2] == b'/')
+}
+
+fn has_traversal(path: &str) -> bool {
+    path.split('/').any(|seg| seg == "..")
 }
 
 #[cfg(test)]
@@ -144,5 +156,30 @@ mod tests {
         let guard = make_guard(&["src/**"], &[]);
         assert!(guard.validate_access("secrets/key.pem").is_err());
         assert!(guard.validate_access("src/main.rs").is_ok());
+    }
+
+    #[test]
+    fn path_traversal_rejected() {
+        let guard = SecureFilesystem::new(vec!["src/**".into()], vec![], Some("/project".into()));
+        assert!(!guard.check_access("../etc/passwd"));
+        assert!(!guard.check_access("src/../../etc/passwd"));
+    }
+
+    #[test]
+    fn backslash_normalized() {
+        let guard = make_guard(&["src/**"], &[]);
+        assert!(guard.check_access("src\\main.rs"));
+    }
+
+    #[test]
+    fn windows_absolute_path_rejected() {
+        let guard = make_guard(&["**"], &[]);
+        assert!(!guard.check_access("C:/Windows/System32"));
+    }
+
+    #[test]
+    fn empty_allowlist_blocks_all() {
+        let guard = make_guard(&[], &[]);
+        assert!(!guard.check_access("anything.rs"));
     }
 }
