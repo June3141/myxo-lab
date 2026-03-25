@@ -27,7 +27,8 @@ impl Document {
         let yaml_text = &rest[..closing_idx];
         let body = &rest[closing_idx + 5..];
 
-        let frontmatter: Frontmatter = serde_yaml::from_str(yaml_text)?;
+        let frontmatter: Frontmatter = serde_yaml::from_str(yaml_text)
+            .map_err(|e| ConfigError::Format(format!("invalid frontmatter YAML: {e}")))?;
 
         Ok(Self {
             frontmatter,

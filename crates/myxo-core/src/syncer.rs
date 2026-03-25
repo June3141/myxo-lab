@@ -106,7 +106,12 @@ impl MyxoSyncer {
                     path: protocols_dir.clone(),
                     source: e,
                 })?
-                .filter_map(|e| e.ok())
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| ConfigError::Io {
+                    path: protocols_dir.clone(),
+                    source: e,
+                })?
+                .into_iter()
                 .filter(|e| e.path().extension().is_some_and(|ext| ext == "md"))
                 .collect();
             entries.sort_by_key(|e| e.file_name());
@@ -126,10 +131,13 @@ impl MyxoSyncer {
 
     pub fn sync(&self, root: &Path, target: &str) -> Result<PathBuf, ConfigError> {
         let all = converters();
-        let converter = all
-            .iter()
-            .find(|c| c.name() == target)
-            .ok_or_else(|| ConfigError::Format(format!("unknown sync target: '{target}'")))?;
+        let converter = all.iter().find(|c| c.name() == target).ok_or_else(|| {
+            let available: Vec<_> = all.iter().map(|c| c.name()).collect();
+            ConfigError::Format(format!(
+                "unknown sync target: '{target}'. Available: {}",
+                available.join(", ")
+            ))
+        })?;
         let content = self.collect()?;
         converter.write(root, &content)
     }
