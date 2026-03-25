@@ -33,7 +33,7 @@ RUN devbox install
 # ============================================================
 # Stage 2: Build Rust binary
 # ============================================================
-FROM rust:1.85-slim-bookworm AS rust-builder
+FROM rust:1.88-slim-bookworm AS rust-builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

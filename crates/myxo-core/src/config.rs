@@ -13,6 +13,8 @@ pub enum ConfigError {
     Yaml(#[from] serde_yaml::Error),
     #[error("{0}")]
     Format(String),
+    #[error("GitHub API error: {0}")]
+    Api(String),
 }
 
 #[derive(Debug, Deserialize)]

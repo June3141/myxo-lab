@@ -4,7 +4,7 @@
 
 | Tool       | Version  | Install                                    |
 |------------|----------|--------------------------------------------|
-| Rust       | 1.85+    | [rustup.rs](https://rustup.rs)             |
+| Rust       | 1.88+    | [rustup.rs](https://rustup.rs)             |
 | Python     | 3.13+    | System or [pyenv](https://github.com/pyenv/pyenv) |
 | uv         | latest   | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
 | go-task    | latest   | `brew install go-task` or [taskfile.dev](https://taskfile.dev) |
