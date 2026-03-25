@@ -79,13 +79,16 @@ def test_no_expression_interpolation_in_run_blocks():
                 )
 
 
-def test_uses_actions_checkout_v6():
+def test_uses_actions_checkout_sha_pinned():
+    import re
+
     data = yaml.safe_load(WORKFLOW_PATH.read_text())
     checkout_found = False
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             uses = step.get("uses", "")
             if "actions/checkout" in uses:
-                assert "actions/checkout@" in uses
+                _, _, ref = uses.partition("@")
+                assert re.fullmatch(r"[0-9a-f]{40}", ref), f"actions/checkout must be SHA-pinned, got: {uses}"
                 checkout_found = True
-    assert checkout_found, "Must use actions/checkout@v6"
+    assert checkout_found, "Must use actions/checkout"

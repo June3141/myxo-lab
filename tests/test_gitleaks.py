@@ -83,9 +83,11 @@ def test_security_workflow_uses_gitleaks_action():
     assert "gitleaks/gitleaks-action" in content, "workflow must reference gitleaks/gitleaks-action"
 
 
-def test_security_workflow_gitleaks_action_v2():
+def test_security_workflow_gitleaks_action_sha_pinned():
+    import re
+
     content = SECURITY_YML.read_text()
-    assert "gitleaks/gitleaks-action@" in content, "workflow must use gitleaks-action"
+    assert re.search(r"gitleaks/gitleaks-action@[0-9a-f]{40}", content), "gitleaks-action must be SHA-pinned"
 
 
 def test_security_workflow_has_permissions():
