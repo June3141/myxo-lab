@@ -24,10 +24,10 @@ pub fn validate_rules(content: &str) -> Vec<String> {
     for (i, line) in lines.iter().enumerate() {
         let line_num = i + 1;
 
-        if line.len() > MAX_LINE_LENGTH {
+        let char_count = line.chars().count();
+        if char_count > MAX_LINE_LENGTH {
             errors.push(format!(
-                "Line {line_num}: exceeds {MAX_LINE_LENGTH} characters (found {})",
-                line.len()
+                "Line {line_num}: exceeds {MAX_LINE_LENGTH} characters (found {char_count})"
             ));
         }
 
