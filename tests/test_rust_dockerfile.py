@@ -29,7 +29,7 @@ def test_copies_rust_binary():
 
 def test_final_stage_is_minimal():
     lines = DOCKERFILE.read_text().splitlines()
-    last_from = [l for l in lines if l.strip().upper().startswith("FROM")][-1].lower()
+    last_from = [line for line in lines if line.strip().upper().startswith("FROM")][-1].lower()
     assert "slim" in last_from or "distroless" in last_from or "alpine" in last_from, (
         f"Final stage should use a minimal base image, got: {last_from}"
     )
