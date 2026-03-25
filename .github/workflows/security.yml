@@ -1,4 +1,4 @@
-name: Secret Scanning
+name: Security Scanning
 
 on:
   pull_request:
@@ -23,3 +23,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
+
+  trivy-iac:
+    name: Trivy IaC scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Scan IaC for misconfigurations
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.29
+        with:
+          scan-type: config
+          scan-ref: infra/
+          format: table
+          exit-code: "1"
+          severity: HIGH,CRITICAL

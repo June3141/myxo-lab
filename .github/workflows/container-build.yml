@@ -32,3 +32,12 @@ jobs:
           tags: myxo-lab:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Scan container image for vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.29
+        with:
+          image-ref: myxo-lab:test
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
