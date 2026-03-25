@@ -1,0 +1,71 @@
+version: "3"
+
+vars:
+  PYTHON_SRC: src/ tests/
+  COVERAGE_THRESHOLD: "80"
+
+tasks:
+  # ── Python ──
+  py:lint:
+    desc: Ruff lint check
+    cmd: uv run ruff check {{.PYTHON_SRC}}
+
+  py:fmt:
+    desc: Ruff format check
+    cmd: uv run ruff format --check {{.PYTHON_SRC}}
+
+  py:fmt:fix:
+    desc: Ruff auto-format
+    cmd: uv run ruff format {{.PYTHON_SRC}}
+
+  py:typecheck:
+    desc: Type check with ty
+    cmd: uv run ty check src/
+
+  py:test:
+    desc: Run pytest with coverage
+    cmd: uv run pytest -m "small or medium" --cov=src/myxo --cov-report=term-missing --cov-fail-under={{.COVERAGE_THRESHOLD}}
+
+  # ── Rust ──
+  rust:fmt:
+    desc: Check Rust formatting
+    cmd: cargo fmt --all -- --check
+
+  rust:fmt:fix:
+    desc: Auto-format Rust code
+    cmd: cargo fmt --all
+
+  rust:lint:
+    desc: Run clippy
+    cmd: cargo clippy --all-targets -- -D warnings
+
+  rust:test:
+    desc: Run Rust tests
+    cmd: cargo test --workspace
+
+  rust:cov:
+    desc: Run Rust tests with coverage
+    cmd: cargo llvm-cov --workspace --fail-under-lines {{.COVERAGE_THRESHOLD}}
+
+  # ── Aggregate ──
+  lint:
+    desc: Lint all (Python + Rust)
+    deps: [py:lint, py:fmt, py:typecheck, rust:fmt, rust:lint]
+
+  test:
+    desc: Test all (Python + Rust)
+    deps: [py:test, rust:test]
+
+  fmt:
+    desc: Auto-format all
+    deps: [py:fmt:fix, rust:fmt:fix]
+
+  check:
+    desc: Full CI check (lint + test)
+    cmds:
+      - task: lint
+      - task: test
+
+  verify:
+    desc: Run mxl verify
+    cmd: uv run mxl verify
