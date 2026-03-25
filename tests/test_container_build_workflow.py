@@ -26,14 +26,16 @@ def test_workflow_is_valid_yaml():
     assert isinstance(data, dict), "Workflow must be a valid YAML mapping"
 
 
-def test_pr_trigger_only_on_container_changes():
-    """PR trigger should only fire on container/** changes, not crates/**."""
+def test_pr_trigger_excludes_rust_paths():
+    """PR trigger should include container/** but exclude Rust paths (verified by rust.yml)."""
     data = _load_workflow()
     on_block = _get_on_block(data)
     pr_trigger = on_block.get("pull_request", {})
     paths = pr_trigger.get("paths", [])
     assert "container/**" in paths, "Must filter on container/** path"
     assert "crates/**" not in paths, "crates/** should not trigger container build on PR"
+    assert "Cargo.toml" not in paths, "Cargo.toml should not trigger container build on PR"
+    assert "Cargo.lock" not in paths, "Cargo.lock should not trigger container build on PR"
 
 
 def test_push_to_main_triggers_build():
