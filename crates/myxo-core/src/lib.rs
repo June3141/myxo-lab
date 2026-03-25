@@ -1,5 +1,7 @@
 pub mod config;
 pub mod frontmatter;
+pub mod rules_validator;
+pub mod sanitizer;
 pub mod syncer;
 pub mod verifier;
 
