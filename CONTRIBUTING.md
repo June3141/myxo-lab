@@ -59,7 +59,7 @@ test: ✅ add sanitizer edge-case tests
 refactor: ♻️ extract rate-limiter module
 ```
 
-See `.gitmessage` or project conventions for the full list.
+See `.claude/skills/commit-rules/` for the full list.
 
 ## Pull Requests
 

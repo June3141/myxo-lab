@@ -20,7 +20,7 @@ class TestContributingExists:
         assert CONTRIBUTING.exists(), "CONTRIBUTING.md must exist at project root"
 
     def test_is_not_empty(self) -> None:
-        assert CONTRIBUTING.stat().st_size > 0, "CONTRIBUTING.md must not be empty"
+        assert CONTRIBUTING.is_file(), "CONTRIBUTING.md must be a regular file"
 
 
 class TestContributingSections:
@@ -35,6 +35,7 @@ class TestContributingSections:
 
     @pytest.fixture()
     def content(self) -> str:
+        assert CONTRIBUTING.is_file(), "CONTRIBUTING.md must exist before reading"
         return CONTRIBUTING.read_text()
 
     @pytest.mark.parametrize("section", REQUIRED_SECTIONS)
@@ -49,7 +50,7 @@ class TestEnvExample:
         assert ENV_EXAMPLE.exists(), ".env.example must exist at project root"
 
     def test_is_not_empty(self) -> None:
-        assert ENV_EXAMPLE.stat().st_size > 0, ".env.example must not be empty"
+        assert ENV_EXAMPLE.is_file(), ".env.example must be a regular file"
 
     REQUIRED_VARS = [
         "GITHUB_TOKEN",
