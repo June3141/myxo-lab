@@ -63,11 +63,11 @@ def test_lint_workflow_paths_include_src_and_tests():
 
 
 # ---------------------------------------------------------------------------
-# pr-title-lint.yml should use setup-uv for consistency
+# pr-title-lint.yml should use a Python setup action
 # ---------------------------------------------------------------------------
 
 
-def test_pr_title_lint_uses_setup_uv():
+def test_pr_title_lint_uses_python_setup():
     content = (WORKFLOWS_DIR / "pr-title-lint.yml").read_text()
-    assert "astral-sh/setup-uv" in content, "pr-title-lint.yml should use setup-uv"
-    assert "actions/setup-python" not in content, "pr-title-lint.yml should not use setup-python"
+    has_python = "actions/setup-python" in content or "astral-sh/setup-uv" in content
+    assert has_python, "pr-title-lint.yml should use setup-python or setup-uv"

@@ -1,0 +1,11 @@
+[default.extend-words]
+# Project-specific terms
+myxo = "myxo"
+physarum = "physarum"
+unparseable = "unparseable"
+# False positives in test crypto keys
+MCH = "MCH"
+HPE = "HPE"
+
+[files]
+extend-exclude = ["uv.lock", "Cargo.lock", "tests/fixtures/"]
