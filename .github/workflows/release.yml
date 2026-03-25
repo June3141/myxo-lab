@@ -29,6 +29,10 @@ jobs:
             }
             found { print }
           ' CHANGELOG.md)
+          if [ -z "$BODY" ]; then
+            echo "::error::No changelog entry found for version $VERSION"
+            exit 1
+          fi
           {
             echo "body<<CHANGELOG_EOF"
             echo "$BODY"

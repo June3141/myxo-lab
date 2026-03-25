@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD hardening: SHA pinning, security scanning, coverage (#214, #215)
 - Taskfile for unified task runner (#216)
 - Pre-commit linters: yamllint, actionlint, shellcheck, hadolint, typos, markdownlint (#217)
+- CHANGELOG and release automation (#219)
 
 ## [0.1.0] - 2026-03-25
 
