@@ -4,6 +4,7 @@ import secrets  # noqa: F401 — GitHub Secrets & Environments
 
 import cleanup  # noqa: F401 — PR cleanup Lambda resources
 import ecs  # noqa: F401 — ECS Fargate resources
+import github_app  # noqa: F401 — GitHub App registration
 import pulumi
 import pulumi_github as github
 import stale_cleanup  # noqa: F401 — Stale resource cleanup Lambda + EventBridge
