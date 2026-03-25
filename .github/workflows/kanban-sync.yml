@@ -8,6 +8,10 @@ permissions:
   issues: read
   repository-projects: write
 
+concurrency:
+  group: kanban-sync-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   move-card:
     runs-on: ubuntu-latest
