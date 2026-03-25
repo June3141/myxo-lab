@@ -1,6 +1,6 @@
 ---
 name: python-code-structure
-description: Python code structure rules for src/myxo/ (file size, function size, single responsibility, layer separation). Reference this when writing or reviewing Python implementation code.
+description: Python code structure rules (file size, function size, single responsibility, layer separation). Reference this when writing or reviewing Python code including Pulumi infra.
 user-invocable: false
 ---
 
