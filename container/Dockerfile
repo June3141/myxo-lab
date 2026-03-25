@@ -11,7 +11,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Nix in single-user mode
-RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
+# Nix 2.34+ requires /nix pre-created and build-users-group disabled in containers
+RUN mkdir -p -m 0755 /nix /etc/nix \
+    && echo 'build-users-group =' > /etc/nix/nix.conf \
+    && curl -fSL https://nixos.org/nix/install -o /tmp/nix-install.sh \
+    && sh /tmp/nix-install.sh --no-daemon \
+    && rm /tmp/nix-install.sh
 
 ENV PATH="/root/.nix-profile/bin:${PATH}"
 
@@ -40,7 +45,7 @@ RUN apt-get update \
 # Copy Nix store and profiles from builder
 COPY --from=builder /nix /nix
 COPY --from=builder /root/.nix-profile /root/.nix-profile
-COPY --from=builder /root/.local/bin/devbox /usr/local/bin/devbox
+COPY --from=builder /usr/local/bin/devbox /usr/local/bin/devbox
 COPY --from=builder /app /app
 
 ENV PATH="/root/.nix-profile/bin:${PATH}"

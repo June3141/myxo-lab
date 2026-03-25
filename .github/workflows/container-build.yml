@@ -41,3 +41,4 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
           severity: HIGH,CRITICAL
+          skip-dirs: /nix/store
