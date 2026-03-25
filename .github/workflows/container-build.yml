@@ -5,6 +5,9 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "container/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
 
 permissions:
   contents: read
@@ -26,7 +29,8 @@ jobs:
       - name: Build container image
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
-          context: container/
+          context: .
+          file: container/Dockerfile
           push: false
           load: true
           tags: myxo-lab:test
