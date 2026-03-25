@@ -11,12 +11,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Nix in single-user mode
-# Nix 2.34+ requires /nix to exist and build-users-group disabled in containers
-RUN mkdir -p -m 0755 /nix \
+# Nix 2.34+ requires /nix pre-created and build-users-group disabled in containers
+RUN mkdir -p -m 0755 /nix /etc/nix \
+    && echo 'build-users-group =' > /etc/nix/nix.conf \
     && curl -fSL https://nixos.org/nix/install -o /tmp/nix-install.sh \
     && sh /tmp/nix-install.sh --no-daemon \
-    && rm /tmp/nix-install.sh \
-    && echo 'build-users-group =' >> /etc/nix/nix.conf
+    && rm /tmp/nix-install.sh
 
 ENV PATH="/root/.nix-profile/bin:${PATH}"
 
