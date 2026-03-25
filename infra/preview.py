@@ -4,10 +4,9 @@ Creates a lightweight ECS service per pull request, allowing API preview
 before merge.  Uses FARGATE_SPOT to keep costs around ~$1/day.
 """
 
+import ecs
 import pulumi
 import pulumi_aws as aws
-
-import ecs
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -80,7 +79,6 @@ class PreviewEnvironment:
             cluster=cluster_arn,
             task_definition=task_definition_arn,
             desired_count=1,
-            launch_type="FARGATE",
             capacity_provider_strategies=[
                 aws.ecs.ServiceCapacityProviderStrategyArgs(
                     capacity_provider="FARGATE_SPOT",
@@ -95,10 +93,10 @@ class PreviewEnvironment:
             tags={"PR": str(pr_number)},
         )
 
-        # --- Export service URL ----------------------------------------------
-        self.service_url = pulumi.Output.concat(
-            "http://", name, ".preview.internal:8080"
-        )
+        # --- Export info -------------------------------------------------------
+        # Note: actual URL requires ALB/Cloud Map setup (future work).
+        # For now, access via task public IP on port 8080.
+        self.service_name = name
 
 
 # ---------------------------------------------------------------------------
@@ -116,4 +114,4 @@ if pr_number:
         vpc_id=_vpc_id,
     )
 
-    pulumi.export("preview_service_url", preview.service_url)
+    pulumi.export("preview_service_name", preview.service_name)

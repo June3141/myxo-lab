@@ -32,25 +32,19 @@ def test_preview_imports_pulumi_aws():
 def test_defines_preview_environment():
     """preview.py must define PreviewEnvironment class or function."""
     src = _preview_source()
-    assert "PreviewEnvironment" in src, (
-        "preview.py must define PreviewEnvironment"
-    )
+    assert "PreviewEnvironment" in src, "preview.py must define PreviewEnvironment"
 
 
 def test_defines_ecs_service():
     """preview.py must define an ECS Service resource."""
     src = _preview_source()
-    assert "ecs.Service(" in src or "aws.ecs.Service(" in src, (
-        "preview.py must define an ECS Service"
-    )
+    assert "ecs.Service(" in src or "aws.ecs.Service(" in src, "preview.py must define an ECS Service"
 
 
 def test_defines_security_group():
     """preview.py must define a Security Group for inbound traffic."""
     src = _preview_source()
-    assert "SecurityGroup(" in src, (
-        "preview.py must define a SecurityGroup"
-    )
+    assert "SecurityGroup(" in src, "preview.py must define a SecurityGroup"
 
 
 def test_security_group_allows_port_8080():
@@ -74,9 +68,7 @@ def test_desired_count_is_one():
 def test_parameterized_by_pr_number():
     """PreviewEnvironment must accept a PR number parameter."""
     src = _preview_source()
-    assert "pr_number" in src, (
-        "PreviewEnvironment must be parameterized by pr_number"
-    )
+    assert "pr_number" in src, "PreviewEnvironment must be parameterized by pr_number"
 
 
 def test_exports_service_url():
@@ -89,6 +81,4 @@ def test_exports_service_url():
 def test_main_imports_preview_module():
     """__main__.py must import the preview module."""
     main_src = (INFRA_DIR / "__main__.py").read_text()
-    assert "preview" in main_src.lower(), (
-        "__main__.py must import the preview module"
-    )
+    assert "preview" in main_src.lower(), "__main__.py must import the preview module"
