@@ -1,4 +1,6 @@
-use serde::Deserialize;
+use std::collections::HashSet;
+
+use crate::config::LabelConfig;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CheckStatus {
@@ -15,49 +17,41 @@ pub struct CheckResult {
 }
 
 impl CheckResult {
-    pub fn ok(name: &str, message: &str) -> Self {
+    pub fn ok(name: impl Into<String>, message: impl Into<String>) -> Self {
         Self {
-            name: name.to_string(),
+            name: name.into(),
             status: CheckStatus::Ok,
-            message: message.to_string(),
+            message: message.into(),
         }
     }
 
-    pub fn fail(name: &str, message: &str) -> Self {
+    pub fn fail(name: impl Into<String>, message: impl Into<String>) -> Self {
         Self {
-            name: name.to_string(),
+            name: name.into(),
             status: CheckStatus::Fail,
-            message: message.to_string(),
+            message: message.into(),
         }
     }
 
-    pub fn warn(name: &str, message: &str) -> Self {
+    pub fn warn(name: impl Into<String>, message: impl Into<String>) -> Self {
         Self {
-            name: name.to_string(),
+            name: name.into(),
             status: CheckStatus::Warn,
-            message: message.to_string(),
+            message: message.into(),
         }
     }
-}
-
-#[derive(Debug, Deserialize)]
-pub struct LabelExpectation {
-    pub name: String,
-    pub color: String,
 }
 
 /// Compare existing labels against expected labels (API-independent logic).
-pub fn check_labels_against(
-    existing: &[String],
-    expected: &[LabelExpectation],
-) -> Vec<CheckResult> {
+pub fn check_labels_against(existing: &[String], expected: &[LabelConfig]) -> Vec<CheckResult> {
+    let existing_set: HashSet<&str> = existing.iter().map(|s| s.as_str()).collect();
     expected
         .iter()
         .map(|label| {
-            if existing.contains(&label.name) {
-                CheckResult::ok(&format!("label: {}", label.name), "exists")
+            if existing_set.contains(label.name.as_str()) {
+                CheckResult::ok(format!("label: {}", label.name), "exists")
             } else {
-                CheckResult::fail(&format!("label: {}", label.name), "missing")
+                CheckResult::fail(format!("label: {}", label.name), "missing")
             }
         })
         .collect()
@@ -65,13 +59,14 @@ pub fn check_labels_against(
 
 /// Compare existing secrets against expected secrets (API-independent logic).
 pub fn check_secrets_against(existing: &[String], expected: &[String]) -> Vec<CheckResult> {
+    let existing_set: HashSet<&str> = existing.iter().map(|s| s.as_str()).collect();
     expected
         .iter()
         .map(|secret| {
-            if existing.contains(secret) {
-                CheckResult::ok(&format!("secret: {secret}"), "configured")
+            if existing_set.contains(secret.as_str()) {
+                CheckResult::ok(format!("secret: {secret}"), "configured")
             } else {
-                CheckResult::fail(&format!("secret: {secret}"), "not found")
+                CheckResult::fail(format!("secret: {secret}"), "not found")
             }
         })
         .collect()
@@ -104,11 +99,11 @@ mod tests {
     fn check_labels_all_present() {
         let existing = vec!["bug".to_string(), "enhancement".to_string()];
         let expected = vec![
-            LabelExpectation {
+            LabelConfig {
                 name: "bug".into(),
                 color: "d73a4a".into(),
             },
-            LabelExpectation {
+            LabelConfig {
                 name: "enhancement".into(),
                 color: "a2eeef".into(),
             },
@@ -121,11 +116,11 @@ mod tests {
     fn check_labels_missing() {
         let existing = vec!["bug".to_string()];
         let expected = vec![
-            LabelExpectation {
+            LabelConfig {
                 name: "bug".into(),
                 color: "d73a4a".into(),
             },
-            LabelExpectation {
+            LabelConfig {
                 name: "missing-label".into(),
                 color: "000000".into(),
             },
