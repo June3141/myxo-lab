@@ -51,12 +51,12 @@ def test_lint_workflow_has_paths_filter():
     assert "paths" in pr_config, "lint.yml should have paths filter on pull_request"
 
 
-def test_lint_workflow_paths_include_src_and_tests():
+def test_lint_workflow_paths_include_infra_and_tests():
     data = _load_workflow("lint.yml")
     triggers = _get_triggers(data)
     paths = triggers["pull_request"]["paths"]
     path_str = " ".join(paths)
-    assert "src/" in path_str or "src/**" in path_str, "paths should include src/"
+    assert "infra/" in path_str or "infra/**" in path_str, "paths should include infra/"
     assert "tests/" in path_str or "tests/**" in path_str, "paths should include tests/"
     assert "pyproject.toml" in path_str, "paths should include pyproject.toml"
     assert "lint.yml" in path_str, "paths should include the workflow file itself"
