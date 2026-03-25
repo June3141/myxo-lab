@@ -5,15 +5,16 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "container/**"
-      - "crates/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
+      - ".github/workflows/container-build.yml"
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
 
 concurrency:
-  group: container-build-${{ github.head_ref }}
+  group: container-build-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
