@@ -1,0 +1,4 @@
+[default.extend-words]
+# Project-specific terms
+myxo = "myxo"
+physarum = "physarum"
