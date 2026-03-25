@@ -2,3 +2,12 @@
 # Project-specific terms
 myxo = "myxo"
 physarum = "physarum"
+unparseable = "unparseable"
+
+[files]
+extend-exclude = ["uv.lock", "Cargo.lock", "tests/fixtures/"]
+
+[default.extend-identifiers]
+# False positives in test crypto keys
+MCH = "MCH"
+HPE = "HPE"
