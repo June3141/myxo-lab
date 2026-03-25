@@ -11,18 +11,15 @@ on:
       - ".github/workflows/lint.yml"
       - ".github/workflows/reusable-python-ci.yml"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
     uses: ./.github/workflows/reusable-python-ci.yml
     with:
       python_version: "3.13"
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.13"
-          enable-cache: true
-      - run: uv run ty check src/

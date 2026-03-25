@@ -107,28 +107,36 @@ def test_test_job_runs_pytest_with_markers():
 # ── actions versions ──
 
 
-def test_uses_actions_checkout_v6():
+def _is_sha_pinned(ref: str) -> bool:
+    """Check if an action ref is pinned to a full commit SHA (40 hex chars)."""
+    import re
+
+    _, _, version = ref.partition("@")
+    return bool(re.fullmatch(r"[0-9a-f]{40}", version))
+
+
+def test_uses_actions_checkout_sha_pinned():
     data = _load_workflow(REUSABLE_CI_PATH)
     checkout_found = False
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             uses = step.get("uses", "")
             if "actions/checkout" in uses:
-                assert uses == "actions/checkout@v6"
+                assert _is_sha_pinned(uses), f"actions/checkout must be SHA-pinned, got: {uses}"
                 checkout_found = True
-    assert checkout_found, "Must use actions/checkout@v6"
+    assert checkout_found, "Must use actions/checkout"
 
 
-def test_uses_setup_uv_v7():
+def test_uses_setup_uv_sha_pinned():
     data = _load_workflow(REUSABLE_CI_PATH)
     uv_found = False
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             uses = step.get("uses", "")
             if "setup-uv" in uses:
-                assert uses == "astral-sh/setup-uv@v7"
+                assert _is_sha_pinned(uses), f"astral-sh/setup-uv must be SHA-pinned, got: {uses}"
                 uv_found = True
-    assert uv_found, "Must use astral-sh/setup-uv@v7"
+    assert uv_found, "Must use astral-sh/setup-uv"
 
 
 def test_setup_uv_enables_cache():

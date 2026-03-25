@@ -30,7 +30,7 @@ fn main() {
 
     match cli.command {
         Command::Init => myxo_core::init(),
-        Command::Sync { target } => myxo_core::sync(target.as_deref()),
-        Command::Verify { fix } => myxo_core::verify(fix),
+        Command::Sync { .. } => myxo_core::sync(),
+        Command::Verify { .. } => myxo_core::verify(),
     }
 }

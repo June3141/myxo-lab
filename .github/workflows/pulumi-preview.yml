@@ -10,14 +10,18 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: pulumi-preview-${{ github.head_ref }}
+  cancel-in-progress: false
+
 jobs:
   preview:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           python-version: "3.13"
           enable-cache: true
@@ -32,7 +36,7 @@ jobs:
           HAS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN != '' }}
         run: echo "has_token=$HAS_TOKEN" >> "$GITHUB_OUTPUT"
 
-      - uses: pulumi/actions@v6
+      - uses: pulumi/actions@8582a9e8cc630786854029b4e09281acd6794b58 # v6
         if: steps.check-token.outputs.has_token == 'true'
         with:
           command: preview

@@ -1,8 +1,8 @@
 pub fn init() {}
 
-pub fn sync(_target: Option<&str>) {}
+pub fn sync() {}
 
-pub fn verify(_fix: bool) {}
+pub fn verify() {}
 
 #[cfg(test)]
 mod tests {

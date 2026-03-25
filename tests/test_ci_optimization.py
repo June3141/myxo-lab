@@ -28,9 +28,10 @@ def _get_triggers(data: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def test_lint_workflow_uses_uv_cache():
+def test_lint_workflow_delegates_to_reusable():
+    """lint.yml should delegate all jobs to reusable-python-ci.yml (which has caching)."""
     content = (WORKFLOWS_DIR / "lint.yml").read_text()
-    assert "enable-cache: true" in content, "lint.yml should enable uv cache"
+    assert "reusable-python-ci.yml" in content, "lint.yml should call reusable-python-ci.yml"
 
 
 def test_pulumi_preview_uses_uv_cache():

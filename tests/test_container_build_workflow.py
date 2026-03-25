@@ -52,14 +52,20 @@ def test_has_permissions_block():
     assert permissions["contents"] == "read"
 
 
-def test_references_docker_build_in_run_steps():
+def test_builds_docker_image():
+    """Build step must exist — either as a run command or a docker/build-push-action."""
     data = yaml.safe_load(WORKFLOW_PATH.read_text())
     run_steps = []
+    uses_steps = []
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             if "run" in step:
                 run_steps.append(step["run"])
-    assert any("docker build" in run for run in run_steps), "At least one run step must contain 'docker build'"
+            if "uses" in step:
+                uses_steps.append(step["uses"])
+    has_docker_build = any("docker build" in run for run in run_steps)
+    has_build_push = any("docker/build-push-action" in uses for uses in uses_steps)
+    assert has_docker_build or has_build_push, "Must have a docker build step"
 
 
 def test_no_expression_interpolation_in_run_blocks():
@@ -73,13 +79,16 @@ def test_no_expression_interpolation_in_run_blocks():
                 )
 
 
-def test_uses_actions_checkout_v6():
+def test_uses_actions_checkout_sha_pinned():
+    import re
+
     data = yaml.safe_load(WORKFLOW_PATH.read_text())
     checkout_found = False
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             uses = step.get("uses", "")
             if "actions/checkout" in uses:
-                assert uses == "actions/checkout@v6"
+                _, _, ref = uses.partition("@")
+                assert re.fullmatch(r"[0-9a-f]{40}", ref), f"actions/checkout must be SHA-pinned, got: {uses}"
                 checkout_found = True
-    assert checkout_found, "Must use actions/checkout@v6"
+    assert checkout_found, "Must use actions/checkout"
