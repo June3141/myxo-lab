@@ -1,11 +1,14 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ConfigError {
-    #[error("failed to read config file: {0}")]
-    Io(#[from] std::io::Error),
+    #[error("failed to read {path}: {source}")]
+    Io {
+        path: PathBuf,
+        source: std::io::Error,
+    },
     #[error("failed to parse config YAML: {0}")]
     Yaml(#[from] serde_yaml::Error),
 }
@@ -49,7 +52,10 @@ impl MyxoConfig {
     }
 
     pub fn from_file(path: &Path) -> Result<Self, ConfigError> {
-        let content = std::fs::read_to_string(path)?;
+        let content = std::fs::read_to_string(path).map_err(|e| ConfigError::Io {
+            path: path.to_path_buf(),
+            source: e,
+        })?;
         Self::from_yaml(&content)
     }
 }
@@ -128,7 +134,10 @@ github:
 
     #[test]
     fn from_file_returns_error_for_missing_file() {
-        let result = MyxoConfig::from_file(std::path::Path::new("/nonexistent/config.yaml"));
+        let dir = std::env::temp_dir().join("myxo-test-nonexistent");
+        let result = MyxoConfig::from_file(&dir.join("config.yaml"));
         assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("config.yaml"), "error should include the file path");
     }
 }
