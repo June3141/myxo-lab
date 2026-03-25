@@ -45,4 +45,4 @@ jobs:
         with:
           tool: cargo-llvm-cov
       - name: Test with coverage
-        run: cargo llvm-cov --all --fail-under-lines 80
+        run: cargo llvm-cov --workspace --fail-under-lines 80

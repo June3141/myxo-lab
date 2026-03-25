@@ -9,7 +9,9 @@ WORKFLOW_PATH = Path(__file__).parent.parent / ".github" / "workflows" / "rust.y
 
 
 def _load_workflow() -> dict:
-    return yaml.safe_load(WORKFLOW_PATH.read_text())
+    data = yaml.safe_load(WORKFLOW_PATH.read_text())
+    assert isinstance(data, dict), "Workflow YAML must be a valid mapping"
+    return data
 
 
 def _get_on_block(data: dict) -> dict:
