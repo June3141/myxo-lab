@@ -138,6 +138,9 @@ github:
         let result = MyxoConfig::from_file(&dir.join("config.yaml"));
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("config.yaml"), "error should include the file path");
+        assert!(
+            err.contains("config.yaml"),
+            "error should include the file path"
+        );
     }
 }
