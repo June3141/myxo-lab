@@ -11,7 +11,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Nix in single-user mode
-RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
+# Nix 2.34+ requires /nix to exist before install (no longer uses sudo)
+RUN mkdir -m 0755 /nix \
+    && curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
 
 ENV PATH="/root/.nix-profile/bin:${PATH}"
 
