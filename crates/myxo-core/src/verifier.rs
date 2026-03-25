@@ -1,4 +1,81 @@
-// Verifier module - to be implemented
+use serde::Deserialize;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CheckStatus {
+    Ok,
+    Fail,
+    Warn,
+}
+
+#[derive(Debug, Clone)]
+pub struct CheckResult {
+    pub name: String,
+    pub status: CheckStatus,
+    pub message: String,
+}
+
+impl CheckResult {
+    pub fn ok(name: &str, message: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            status: CheckStatus::Ok,
+            message: message.to_string(),
+        }
+    }
+
+    pub fn fail(name: &str, message: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            status: CheckStatus::Fail,
+            message: message.to_string(),
+        }
+    }
+
+    pub fn warn(name: &str, message: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            status: CheckStatus::Warn,
+            message: message.to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LabelExpectation {
+    pub name: String,
+    pub color: String,
+}
+
+/// Compare existing labels against expected labels (API-independent logic).
+pub fn check_labels_against(
+    existing: &[String],
+    expected: &[LabelExpectation],
+) -> Vec<CheckResult> {
+    expected
+        .iter()
+        .map(|label| {
+            if existing.contains(&label.name) {
+                CheckResult::ok(&format!("label: {}", label.name), "exists")
+            } else {
+                CheckResult::fail(&format!("label: {}", label.name), "missing")
+            }
+        })
+        .collect()
+}
+
+/// Compare existing secrets against expected secrets (API-independent logic).
+pub fn check_secrets_against(existing: &[String], expected: &[String]) -> Vec<CheckResult> {
+    expected
+        .iter()
+        .map(|secret| {
+            if existing.contains(secret) {
+                CheckResult::ok(&format!("secret: {secret}"), "configured")
+            } else {
+                CheckResult::fail(&format!("secret: {secret}"), "not found")
+            }
+        })
+        .collect()
+}
 
 #[cfg(test)]
 mod tests {
