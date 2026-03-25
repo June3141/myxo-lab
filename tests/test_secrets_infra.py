@@ -88,6 +88,54 @@ def test_defines_aws_secret_access_key_secret():
 
 
 # ---------------------------------------------------------------------------
+# Purpose-specific API key secrets (#28)
+# ---------------------------------------------------------------------------
+
+
+def test_defines_anthropic_api_key_myxo_secret():
+    """secrets.py must define ANTHROPIC_API_KEY_MYXO for worker agent execution."""
+    src = _secrets_source()
+    assert "ANTHROPIC_API_KEY_MYXO" in src
+
+
+def test_defines_anthropic_api_key_scheduled_secret():
+    """secrets.py must define ANTHROPIC_API_KEY_SCHEDULED for cron tasks."""
+    src = _secrets_source()
+    assert "ANTHROPIC_API_KEY_SCHEDULED" in src
+
+
+def test_defines_github_app_private_key_secret():
+    """secrets.py must define GITHUB_APP_PRIVATE_KEY for GitHub App token generation."""
+    src = _secrets_source()
+    assert "GITHUB_APP_PRIVATE_KEY" in src
+
+
+def test_all_new_secrets_use_require_secret():
+    """All purpose-specific secrets must use require_secret (no plaintext)."""
+    src = _secrets_source()
+    new_secret_names = [
+        "ANTHROPIC_API_KEY_MYXO",
+        "ANTHROPIC_API_KEY_SCHEDULED",
+        "GITHUB_APP_PRIVATE_KEY",
+    ]
+    for name in new_secret_names:
+        pattern = rf'require_secret\(\s*"{name}"\s*\)'
+        assert re.search(pattern, src), f"{name} must be loaded via require_secret(), not plaintext"
+
+
+def test_purpose_based_naming_pattern():
+    """SECRET_DEFS must contain keys matching purpose-based naming (MYXO, SCHEDULED, APP)."""
+    src = _secrets_source()
+    # Extract keys from SECRET_DEFS dict
+    secret_def_keys = re.findall(r'"([A-Z_]+)":\s*\w+', src)
+    purpose_keywords = {"MYXO", "SCHEDULED", "APP"}
+    found = {kw for kw in purpose_keywords if any(kw in k for k in secret_def_keys)}
+    assert found == purpose_keywords, (
+        f"SECRET_DEFS must contain purpose-based keys with {purpose_keywords}, but only found {found}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Security: no hardcoded secrets
 # ---------------------------------------------------------------------------
 
