@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::config::LabelConfig;
+use crate::config::{ConfigError, LabelConfig};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CheckStatus {
@@ -70,6 +70,64 @@ pub fn check_secrets_against(existing: &[String], expected: &[String]) -> Vec<Ch
             }
         })
         .collect()
+}
+
+/// GitHub API verifier using octocrab.
+pub struct GitHubVerifier {
+    crab: octocrab::Octocrab,
+}
+
+impl GitHubVerifier {
+    pub fn new(token: &str) -> Result<Self, ConfigError> {
+        let crab = octocrab::Octocrab::builder()
+            .personal_token(token.to_string())
+            .build()
+            .map_err(|e| ConfigError::Format(format!("failed to create GitHub client: {e}")))?;
+        Ok(Self { crab })
+    }
+
+    /// Fetch labels from a repository and check against expected.
+    pub async fn check_labels(
+        &self,
+        owner: &str,
+        repo: &str,
+        expected: &[LabelConfig],
+    ) -> Result<Vec<CheckResult>, ConfigError> {
+        let labels = self
+            .crab
+            .issues(owner, repo)
+            .list_labels_for_repo()
+            .send()
+            .await
+            .map_err(|e| ConfigError::Format(format!("failed to fetch labels: {e}")))?;
+
+        let existing: Vec<String> = labels.items.iter().map(|l| l.name.clone()).collect();
+        Ok(check_labels_against(&existing, expected))
+    }
+
+    /// Fetch secrets list from a repository and check against expected.
+    pub async fn check_secrets(
+        &self,
+        owner: &str,
+        repo: &str,
+        expected: &[String],
+    ) -> Result<Vec<CheckResult>, ConfigError> {
+        let route = format!("/repos/{owner}/{repo}/actions/secrets");
+        let response: serde_json::Value = self
+            .crab
+            .get(&route, None::<&()>)
+            .await
+            .map_err(|e| ConfigError::Format(format!("failed to fetch secrets: {e}")))?;
+
+        let existing: Vec<String> = response["secrets"]
+            .as_array()
+            .unwrap_or(&vec![])
+            .iter()
+            .filter_map(|s| s["name"].as_str().map(String::from))
+            .collect();
+
+        Ok(check_secrets_against(&existing, expected))
+    }
 }
 
 #[cfg(test)]
@@ -144,5 +202,11 @@ mod tests {
         let expected = vec!["MISSING_SECRET".to_string()];
         let results = check_secrets_against(&existing, &expected);
         assert_eq!(results[0].status, CheckStatus::Fail);
+    }
+
+    #[tokio::test]
+    async fn verifier_new_with_token() {
+        let verifier = GitHubVerifier::new("test-token");
+        assert!(verifier.is_ok());
     }
 }
