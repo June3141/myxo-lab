@@ -15,8 +15,10 @@ tasks:
     cmd: uv run ruff format --check {{.PYTHON_SRC}}
 
   py:fmt:fix:
-    desc: Ruff auto-format
-    cmd: uv run ruff format {{.PYTHON_SRC}}
+    desc: Ruff auto-fix and format
+    cmds:
+      - uv run ruff check --fix {{.PYTHON_SRC}}
+      - uv run ruff format {{.PYTHON_SRC}}
 
   py:typecheck:
     desc: Type check with ty

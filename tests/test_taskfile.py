@@ -29,14 +29,12 @@ class TestTaskfileStructure:
     def test_taskfile_exists(self) -> None:
         assert TASKFILE.exists(), "Taskfile.yml must exist at project root"
 
-    def test_valid_yaml(self) -> None:
-        content = TASKFILE.read_text()
-        data = yaml.safe_load(content)
-        assert isinstance(data, dict)
+    def test_valid_yaml(self, taskfile: dict) -> None:
+        assert isinstance(taskfile, dict)
 
     def test_has_version(self, taskfile: dict) -> None:
         assert "version" in taskfile
-        assert taskfile["version"] == "3"
+        assert taskfile["version"] in (3, "3")
 
     def test_has_tasks_section(self, taskfile: dict) -> None:
         assert "tasks" in taskfile
