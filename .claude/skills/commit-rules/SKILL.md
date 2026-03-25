@@ -92,9 +92,9 @@ Refs #12
 ### Code Changes
 
 - Max **10 files** per commit
-- Max **300 lines** added+deleted (excluding tests and auto-generated files)
+- Max **200 lines** added+deleted (excluding tests and auto-generated files)
 - **1 commit = 1 concern** — never mix feat and fix in the same commit
-- Auto-generated files (uv.lock, package-lock.json) do not count toward limits
+- Auto-generated files (uv.lock, package-lock.json, Cargo.lock) do not count toward limits
 - If limits are exceeded, split the commit. If splitting is impractical, explain why in the body.
 
 ### Test Code
