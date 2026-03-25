@@ -36,22 +36,25 @@ def test_cluster_has_cost_tags():
 
 
 def test_task_definition_has_cost_tags():
-    """Task Definition must have cost tags."""
+    """Task Definition must have cost tags (inline or via shared variable)."""
     src = _ecs_source()
-    # The tags dict must appear after ecs.TaskDefinition
     td_start = src.index("ecs.TaskDefinition(")
     td_section = src[td_start:]
-    for key in _COST_TAGS:
-        assert f'"{key}"' in td_section, f"TaskDefinition must have {key} tag"
+    # Accept either inline tag literals or a reference to a shared tags dict
+    has_inline = all(f'"{k}"' in td_section for k in _COST_TAGS)
+    has_ref = "_COST_TAGS" in td_section
+    assert has_inline or has_ref, "TaskDefinition must have cost tags"
 
 
 def test_efs_has_cost_tags():
     """EFS FileSystem must have cost tags in addition to Name tag."""
     src = _ecs_source()
     efs_start = src.index("aws.efs.FileSystem(")
-    efs_section = src[efs_start:src.index(")", efs_start + 200)]
-    for key in _COST_TAGS:
-        assert f'"{key}"' in efs_section, f"EFS must have {key} tag"
+    # Use a generous slice to capture the full resource block
+    efs_section = src[efs_start:efs_start + 400]
+    has_inline = all(f'"{k}"' in efs_section for k in _COST_TAGS)
+    has_ref = "_COST_TAGS" in efs_section
+    assert has_inline or has_ref, "EFS must have cost tags"
 
 
 # ---------------------------------------------------------------------------

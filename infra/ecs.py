@@ -5,6 +5,7 @@ Defines minimal ECS infrastructure:
 - IAM roles (task execution + task)
 - Fargate Task Definition (0.25 vCPU / 512 MB)
 - EFS file system for Nix store cache
+- Cost tags, ECR image scanning, CloudWatch metric filter
 """
 
 import json
@@ -14,6 +15,13 @@ import pulumi_aws as aws
 
 config = pulumi.Config("aws")
 _region = config.require("region")
+
+# --- Cost tags (#137) --------------------------------------------------------
+_COST_TAGS = {
+    "Project": "myxo-lab",
+    "Environment": "dev",
+    "CostCenter": "ai-agent",
+}
 
 # --- providers ---------------------------------------------------------------
 ecs = aws.ecs
@@ -34,12 +42,17 @@ repo = ecr.Repository(
     name="myxo-base",
     image_tag_mutability="MUTABLE",
     force_delete=False,
+    image_scanning_configuration=ecr.RepositoryImageScanningConfigurationArgs(
+        scan_on_push=True,
+    ),
+    tags=_COST_TAGS,
 )
 
 # --- ECS Cluster -------------------------------------------------------------
 cluster = ecs.Cluster(
     "myxo-cluster",
     name="myxo-cluster",
+    tags=_COST_TAGS,
 )
 
 # --- IAM: Task Execution Role -----------------------------------------------
@@ -130,7 +143,7 @@ nix_cache_fs = aws.efs.FileSystem(
     "myxo-nix-cache",
     encrypted=True,
     performance_mode="generalPurpose",
-    tags={"Name": "myxo-nix-cache"},
+    tags={"Name": "myxo-nix-cache", **_COST_TAGS},
 )
 
 nix_cache_ap = aws.efs.AccessPoint(
@@ -174,6 +187,7 @@ task_definition = ecs.TaskDefinition(
             ),
         ),
     ],
+    tags=_COST_TAGS,
     container_definitions=pulumi.Output.all(repo.repository_url, log_group.name).apply(
         lambda args: json.dumps(
             [
@@ -201,6 +215,20 @@ task_definition = ecs.TaskDefinition(
                 }
             ]
         )
+    ),
+)
+
+# --- CloudWatch Metric Filter for task execution (#137) ---------------------
+task_execution_metric_filter = cloudwatch.LogMetricFilter(
+    "myxo-task-execution-metric",
+    name="myxo-task-execution-time",
+    log_group_name=log_group.name,
+    pattern="TASK_EXECUTION_TIME",
+    metric_transformation=cloudwatch.LogMetricFilterMetricTransformationArgs(
+        name="TaskExecutionTime",
+        namespace="Myxo/ECS",
+        value="$executionTime",
+        default_value="0",
     ),
 )
 
