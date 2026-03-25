@@ -43,7 +43,11 @@ tasks:
 
   rust:test:
     desc: Run Rust tests
-    cmd: cargo test --workspace
+    cmd: cargo nextest run --workspace
+
+  rust:test:all:
+    desc: Run all Rust tests including ignored
+    cmd: cargo nextest run --workspace --run-ignored all
 
   rust:cov:
     desc: Run Rust tests with coverage

@@ -44,5 +44,22 @@ jobs:
       - uses: taiki-e/install-action@328a871ad8f62ecac78390391f463ccabc974b72 # main
         with:
           tool: cargo-llvm-cov
+      - uses: taiki-e/install-action@328a871ad8f62ecac78390391f463ccabc974b72 # main
+        with:
+          tool: cargo-nextest
       - name: Test with coverage
-        run: cargo llvm-cov --workspace --fail-under-lines 80
+        run: cargo llvm-cov nextest --workspace --profile ci --fail-under-lines 80
+
+  test-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9 # master
+        with:
+          toolchain: "1.88.0"
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - uses: taiki-e/install-action@328a871ad8f62ecac78390391f463ccabc974b72 # main
+        with:
+          tool: cargo-nextest
+      - name: Run all tests including ignored
+        run: cargo nextest run --workspace --profile ci --run-ignored all
