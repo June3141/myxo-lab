@@ -10,8 +10,15 @@ on:
       - "rust-toolchain.toml"
       - ".github/workflows/rust.yml"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
-  check:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -24,5 +31,18 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings
-      - name: Test
-        run: cargo test --all
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9 # master
+        with:
+          toolchain: "1.85.0"
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - uses: taiki-e/install-action@328a871ad8f62ecac78390391f463ccabc974b72 # main
+        with:
+          tool: cargo-llvm-cov
+      - name: Test with coverage
+        run: cargo llvm-cov --all --fail-under-lines 80
