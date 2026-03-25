@@ -4,6 +4,7 @@ Defines minimal ECS infrastructure:
 - ECS Cluster, ECR Repository, CloudWatch Log Group
 - IAM roles (task execution + task)
 - Fargate Task Definition (0.25 vCPU / 512 MB)
+- EFS file system for Nix store cache
 """
 
 import json
@@ -83,6 +84,28 @@ task_role = iam.Role(
     ),
 )
 
+# EFS client permissions for task role
+iam.RolePolicy(
+    "myxo-task-efs-policy",
+    role=task_role.name,
+    policy=json.dumps(
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Action": [
+                        "elasticfilesystem:ClientMount",
+                        "elasticfilesystem:ClientWrite",
+                        "elasticfilesystem:DescribeMountTargets",
+                    ],
+                    "Resource": "*",
+                }
+            ],
+        }
+    ),
+)
+
 # --- Fargate Spot Capacity Providers ----------------------------------------
 ecs.ClusterCapacityProviders(
     "myxo-cluster-capacity-providers",
@@ -102,6 +125,32 @@ ecs.ClusterCapacityProviders(
     ],
 )
 
+# --- EFS: Nix store cache ----------------------------------------------------
+nix_cache_fs = aws.efs.FileSystem(
+    "myxo-nix-cache",
+    encrypted=True,
+    performance_mode="generalPurpose",
+    tags={"Name": "myxo-nix-cache"},
+)
+
+nix_cache_ap = aws.efs.AccessPoint(
+    "myxo-nix-cache-ap",
+    file_system_id=nix_cache_fs.id,
+    posix_user=aws.efs.AccessPointPosixUserArgs(uid=1000, gid=1000),
+    root_directory=aws.efs.AccessPointRootDirectoryArgs(
+        path="/nix-store",
+        creation_info=aws.efs.AccessPointRootDirectoryCreationInfoArgs(
+            owner_uid=1000,
+            owner_gid=1000,
+            permissions="755",
+        ),
+    ),
+    tags={"Name": "myxo-nix-cache-ap"},
+)
+
+# TODO(#137): Add EFS Mount Target once VPC/subnet resources are available.
+# aws.efs.MountTarget("myxo-nix-cache-mt", ...)
+
 # --- ECS Task Definition -----------------------------------------------------
 task_definition = ecs.TaskDefinition(
     "myxo-task",
@@ -112,6 +161,19 @@ task_definition = ecs.TaskDefinition(
     requires_compatibilities=["FARGATE"],
     execution_role_arn=task_execution_role.arn,
     task_role_arn=task_role.arn,
+    volumes=[
+        ecs.TaskDefinitionVolumeArgs(
+            name="nix-cache",
+            efs_volume_configuration=ecs.TaskDefinitionVolumeEfsVolumeConfigurationArgs(
+                file_system_id=nix_cache_fs.id,
+                transit_encryption="ENABLED",
+                authorization_config=ecs.TaskDefinitionVolumeEfsVolumeConfigurationAuthorizationConfigArgs(
+                    access_point_id=nix_cache_ap.id,
+                    iam="ENABLED",
+                ),
+            ),
+        ),
+    ],
     container_definitions=pulumi.Output.all(repo.repository_url, log_group.name).apply(
         lambda args: json.dumps(
             [
@@ -121,6 +183,13 @@ task_definition = ecs.TaskDefinition(
                     "cpu": 256,
                     "memory": 512,
                     "essential": True,
+                    "mountPoints": [
+                        {
+                            "sourceVolume": "nix-cache",
+                            "containerPath": "/nix",
+                            "readOnly": False,
+                        }
+                    ],
                     "logConfiguration": {
                         "logDriver": "awslogs",
                         "options": {
@@ -139,3 +208,4 @@ task_definition = ecs.TaskDefinition(
 pulumi.export("cluster_name", cluster.name)
 pulumi.export("ecr_url", repo.repository_url)
 pulumi.export("task_definition_arn", task_definition.arn)
+pulumi.export("efs_file_system_id", nix_cache_fs.id)
