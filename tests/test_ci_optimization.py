@@ -51,7 +51,7 @@ def test_lint_workflow_has_paths_filter():
     assert "paths" in pr_config, "lint.yml should have paths filter on pull_request"
 
 
-def test_lint_workflow_paths_include_src_and_tests():
+def test_lint_workflow_paths_include_infra_and_tests():
     data = _load_workflow("lint.yml")
     triggers = _get_triggers(data)
     paths = triggers["pull_request"]["paths"]
