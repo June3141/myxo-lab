@@ -1,4 +1,66 @@
-// Sanitizer module - to be implemented
+use regex::Regex;
+
+struct Pattern {
+    label: &'static str,
+    regex: Regex,
+}
+
+pub struct Sanitizer {
+    patterns: Vec<Pattern>,
+}
+
+impl Sanitizer {
+    pub fn new() -> Self {
+        Self {
+            patterns: vec![
+                Pattern {
+                    label: "aws-access-key",
+                    regex: Regex::new(r"AKIA[0-9A-Z]{16}").unwrap(),
+                },
+                Pattern {
+                    label: "jwt",
+                    regex: Regex::new(r"eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+")
+                        .unwrap(),
+                },
+                Pattern {
+                    label: "github-token",
+                    regex: Regex::new(
+                        r"(?:github_pat_[A-Za-z0-9_]{22,}|gh[psourx]_[A-Za-z0-9_]{36,})",
+                    )
+                    .unwrap(),
+                },
+                Pattern {
+                    label: "private-key",
+                    regex: Regex::new(
+                        r"-----BEGIN\s[\w\s]*PRIVATE\sKEY-----[\s\S]*?-----END\s[\w\s]*PRIVATE\sKEY-----",
+                    )
+                    .unwrap(),
+                },
+            ],
+        }
+    }
+
+    pub fn sanitize(&self, text: &str) -> String {
+        let mut result = text.to_string();
+        for p in &self.patterns {
+            result = p
+                .regex
+                .replace_all(&result, format!("[REDACTED:{}]", p.label))
+                .into_owned();
+        }
+        result
+    }
+
+    pub fn has_secrets(&self, text: &str) -> bool {
+        self.patterns.iter().any(|p| p.regex.is_match(text))
+    }
+}
+
+impl Default for Sanitizer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[cfg(test)]
 mod tests {
