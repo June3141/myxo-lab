@@ -51,7 +51,7 @@ iam.RolePolicyAttachment(
 # ECS task stop permissions
 iam.RolePolicy(
     "myxo-pr-cleanup-ecs-policy",
-    role=cleanup_role.id,
+    role=cleanup_role.name,
     policy=json.dumps(
         {
             "Version": "2012-10-17",
@@ -63,7 +63,7 @@ iam.RolePolicy(
                         "ecs:ListTasks",
                         "ecs:DescribeTasks",
                     ],
-                    "Resource": "*",
+                    "Resource": "arn:aws:ecs:*:*:task/myxo-cluster/*",
                 }
             ],
         }
@@ -80,9 +80,7 @@ cleanup_lambda = aws.lambda_.Function(
     memory_size=128,
     role=cleanup_role.arn,
     description="Clean up preview resources when PR is closed",
-    code=pulumi.AssetArchive(
-        {"handler.py": pulumi.FileAsset("../lambda/pr_cleanup/handler.py")}
-    ),
+    code=pulumi.AssetArchive({"handler.py": pulumi.FileAsset("../lambda/pr_cleanup/handler.py")}),
 )
 
 # --- EventBridge Rule -------------------------------------------------------

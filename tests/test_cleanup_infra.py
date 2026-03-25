@@ -32,9 +32,7 @@ def _cleanup_source() -> str:
 def test_defines_lambda_function():
     """cleanup.py must define a Lambda Function resource."""
     src = _cleanup_source()
-    assert "aws.lambda_.Function(" in src or "lambda_.Function(" in src, (
-        "cleanup.py must define a Lambda Function"
-    )
+    assert "aws.lambda_.Function(" in src or "lambda_.Function(" in src, "cleanup.py must define a Lambda Function"
 
 
 def test_defines_iam_role():
@@ -52,9 +50,7 @@ def test_defines_cloudwatch_log_group():
 def test_defines_eventbridge_rule():
     """cleanup.py must define an EventBridge Rule for PR close events."""
     src = _cleanup_source()
-    assert "cloudwatch.EventRule(" in src or "EventRule(" in src, (
-        "cleanup.py must define an EventBridge Rule"
-    )
+    assert "cloudwatch.EventRule(" in src or "EventRule(" in src, "cleanup.py must define an EventBridge Rule"
 
 
 def test_no_pseudopod_references():

@@ -27,10 +27,16 @@ def test_handler_module_exists():
 
 def _load_handler():
     """Import the handler module dynamically."""
-    handler_dir = Path(__file__).resolve().parent.parent / "lambda" / "pr_cleanup"
-    if str(handler_dir) not in sys.path:
-        sys.path.insert(0, str(handler_dir))
-    return importlib.import_module("handler")
+    handler_dir = str(Path(__file__).resolve().parent.parent / "lambda" / "pr_cleanup")
+    original_path = sys.path.copy()
+    try:
+        if handler_dir not in sys.path:
+            sys.path.insert(0, handler_dir)
+        if "handler" in sys.modules:
+            return importlib.reload(sys.modules["handler"])
+        return importlib.import_module("handler")
+    finally:
+        sys.path[:] = original_path
 
 
 def test_handler_has_handle_function():
