@@ -11,6 +11,8 @@ pub enum ConfigError {
     },
     #[error("failed to parse config YAML: {0}")]
     Yaml(#[from] serde_yaml::Error),
+    #[error("{0}")]
+    Format(String),
 }
 
 #[derive(Debug, Deserialize)]

@@ -1,4 +1,48 @@
-// Frontmatter parser module - to be implemented
+use std::collections::HashMap;
+use std::path::Path;
+
+use crate::config::ConfigError;
+
+pub type Frontmatter = HashMap<String, serde_yaml::Value>;
+
+#[derive(Debug)]
+pub struct Document {
+    pub frontmatter: Frontmatter,
+    pub body: String,
+}
+
+impl Document {
+    pub fn parse(content: &str) -> Result<Self, ConfigError> {
+        if !content.starts_with("---\n") {
+            return Err(ConfigError::Format(
+                "missing YAML frontmatter opening delimiter".into(),
+            ));
+        }
+
+        let rest = &content[4..];
+        let closing_idx = rest.find("\n---\n").ok_or_else(|| {
+            ConfigError::Format("missing YAML frontmatter closing delimiter".into())
+        })?;
+
+        let yaml_text = &rest[..closing_idx];
+        let body = &rest[closing_idx + 5..];
+
+        let frontmatter: Frontmatter = serde_yaml::from_str(yaml_text)?;
+
+        Ok(Self {
+            frontmatter,
+            body: body.to_string(),
+        })
+    }
+
+    pub fn load(path: &Path) -> Result<Self, ConfigError> {
+        let content = std::fs::read_to_string(path).map_err(|e| ConfigError::Io {
+            path: path.to_path_buf(),
+            source: e,
+        })?;
+        Self::parse(&content)
+    }
+}
 
 #[cfg(test)]
 mod tests {
