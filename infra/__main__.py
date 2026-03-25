@@ -4,6 +4,7 @@ import secrets  # noqa: F401 — GitHub Secrets & Environments
 
 import cleanup  # noqa: F401 — PR cleanup Lambda resources
 import ecs  # noqa: F401 — ECS Fargate resources
+import frontend_preview  # noqa: F401 — S3 + CloudFront frontend preview
 import github_app  # noqa: F401 — GitHub App registration
 import preview  # noqa: F401 — ECS Fargate preview environments
 import pulumi
