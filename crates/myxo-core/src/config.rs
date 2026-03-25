@@ -1,4 +1,58 @@
-// Config module - to be implemented
+use std::path::Path;
+
+use serde::Deserialize;
+
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigError {
+    #[error("failed to read config file: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("failed to parse config YAML: {0}")]
+    Yaml(#[from] serde_yaml::Error),
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MyxoConfig {
+    pub version: String,
+    #[serde(default)]
+    pub github: Option<GitHubConfig>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GitHubConfig {
+    pub repo: String,
+    #[serde(default)]
+    pub labels: Vec<LabelConfig>,
+    #[serde(default)]
+    pub branch_protection: Option<BranchProtectionConfig>,
+    #[serde(default)]
+    pub secrets: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LabelConfig {
+    pub name: String,
+    pub color: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BranchProtectionConfig {
+    pub branch: String,
+    #[serde(default)]
+    pub required_reviews: u32,
+    #[serde(default)]
+    pub dismiss_stale_reviews: bool,
+}
+
+impl MyxoConfig {
+    pub fn from_yaml(yaml: &str) -> Result<Self, ConfigError> {
+        Ok(serde_yaml::from_str(yaml)?)
+    }
+
+    pub fn from_file(path: &Path) -> Result<Self, ConfigError> {
+        let content = std::fs::read_to_string(path)?;
+        Self::from_yaml(&content)
+    }
+}
 
 #[cfg(test)]
 mod tests {
