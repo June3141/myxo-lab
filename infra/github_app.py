@@ -1,38 +1,20 @@
-"""GitHub App registration and permission configuration.
+"""GitHub App permission and event metadata.
 
-Defines the Myxo Lab GitHub App with required permissions and webhook events.
-The App provides authenticated API access for mxl verify, syncer, and
-automated issue/PR management.
-
-Note: The actual App must be registered manually on GitHub first.
-This module manages the installation and permission configuration via Pulumi.
+Defines the required permissions and webhook events for the Myxo Lab GitHub App.
+The App itself must be registered manually at https://github.com/settings/apps/new.
+This module exports the configuration as Pulumi stack outputs for reference.
 """
 
 import pulumi
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
-config = pulumi.Config()
-repo_name = config.require("repo")
-
 app_config = pulumi.Config("github-app")
 app_slug = app_config.get("slug") or "myxo-lab-bot"
-
-# ---------------------------------------------------------------------------
-# GitHub App Installation Repository
-# ---------------------------------------------------------------------------
-# The App must be created manually at https://github.com/settings/apps/new
-# with the following permissions and events configured below.
-#
-# After creation, install it on the repository and note the installation ID.
 
 # Required permissions for myxo operations:
 # - issues: write       — create/update issues (verify drift, procedure flow)
 # - pull_requests: write — create PRs (auto-fix, protocol generation)
 # - contents: write     — push commits (sync, auto-fix)
 # - actions: read       — read workflow run status
-
 PERMISSIONS = {
     "issues": "write",
     "pull_requests": "write",
