@@ -84,6 +84,28 @@ task_role = iam.Role(
     ),
 )
 
+# EFS client permissions for task role
+iam.RolePolicy(
+    "myxo-task-efs-policy",
+    role=task_role.name,
+    policy=json.dumps(
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Action": [
+                        "elasticfilesystem:ClientMount",
+                        "elasticfilesystem:ClientWrite",
+                        "elasticfilesystem:DescribeMountTargets",
+                    ],
+                    "Resource": "*",
+                }
+            ],
+        }
+    ),
+)
+
 # --- Fargate Spot Capacity Providers ----------------------------------------
 ecs.ClusterCapacityProviders(
     "myxo-cluster-capacity-providers",
