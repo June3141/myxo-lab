@@ -1,4 +1,80 @@
-// PromptCache module - to be implemented
+use std::collections::HashSet;
+
+use sha2::{Digest, Sha256};
+
+pub struct CacheStats {
+    pub total_requests: u64,
+    pub cache_hits: u64,
+    pub cache_misses: u64,
+}
+
+impl CacheStats {
+    pub fn hit_rate(&self) -> f64 {
+        if self.total_requests == 0 {
+            0.0
+        } else {
+            self.cache_hits as f64 / self.total_requests as f64
+        }
+    }
+}
+
+pub struct PromptCacheManager {
+    cacheable_prefixes: Vec<String>,
+    seen_hashes: HashSet<String>,
+    max_history: usize,
+    cache_hits: u64,
+    cache_misses: u64,
+    total_requests: u64,
+}
+
+impl PromptCacheManager {
+    pub fn new(cacheable_prefixes: Vec<String>) -> Self {
+        Self::with_max_history(cacheable_prefixes, 10000)
+    }
+
+    pub fn with_max_history(cacheable_prefixes: Vec<String>, max_history: usize) -> Self {
+        Self {
+            cacheable_prefixes,
+            seen_hashes: HashSet::new(),
+            max_history,
+            cache_hits: 0,
+            cache_misses: 0,
+            total_requests: 0,
+        }
+    }
+
+    pub fn is_cacheable(&self, content: &str) -> bool {
+        if content.is_empty() {
+            return false;
+        }
+        self.cacheable_prefixes
+            .iter()
+            .any(|prefix| content.starts_with(prefix))
+    }
+
+    pub fn track(&mut self, content: &str) {
+        let hash = hex::encode(Sha256::digest(content.as_bytes()));
+        self.total_requests += 1;
+
+        if self.seen_hashes.contains(&hash) {
+            self.cache_hits += 1;
+        } else {
+            self.cache_misses += 1;
+            if self.seen_hashes.len() >= self.max_history {
+                self.seen_hashes.clear();
+            }
+            self.seen_hashes.insert(hash);
+        }
+    }
+
+    pub fn stats(&self) -> CacheStats {
+        CacheStats {
+            total_requests: self.total_requests,
+            cache_hits: self.cache_hits,
+            cache_misses: self.cache_misses,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -22,8 +98,8 @@ mod tests {
     fn stats_track_hits_and_misses() {
         let mut cache = PromptCacheManager::new(vec!["Log".into()]);
         cache.track("Log entry 1");
-        cache.track("Log entry 1"); // hit
-        cache.track("Log entry 2"); // miss
+        cache.track("Log entry 1");
+        cache.track("Log entry 2");
 
         let stats = cache.stats();
         assert_eq!(stats.total_requests, 3);
@@ -46,9 +122,8 @@ mod tests {
         let mut cache = PromptCacheManager::with_max_history(vec![], 2);
         cache.track("a");
         cache.track("b");
-        cache.track("c"); // should clear and add "c"
-        // After clear, "a" is no longer seen
-        cache.track("a"); // miss, not hit
+        cache.track("c");
+        cache.track("a");
         assert_eq!(cache.stats().cache_hits, 0);
     }
 }
