@@ -6,15 +6,11 @@ Verify that:
 - `Taskfile.yml` has a `rust:test:all` task
 """
 
+import tomllib
 from pathlib import Path
 
 import pytest
 import yaml
-
-try:
-    import tomllib
-except ModuleNotFoundError:  # Python < 3.11
-    import tomli as tomllib  # type: ignore[no-redef]
 
 ROOT = Path(__file__).resolve().parents[1]
 NEXTEST_CONFIG = ROOT / ".config" / "nextest.toml"
@@ -80,9 +76,7 @@ class TestRustWorkflowNextest:
         steps = job.get("steps", [])
         run_steps = [s.get("run", "") for s in steps if "run" in s]
         combined = " ".join(run_steps)
-        assert "--run-ignored" in combined, (
-            "test-integration must use --run-ignored flag"
-        )
+        assert "--run-ignored" in combined, "test-integration must use --run-ignored flag"
 
     def test_test_job_uses_nextest(self, workflow: dict) -> None:
         """Test job should use cargo llvm-cov nextest."""
@@ -102,9 +96,7 @@ class TestRustWorkflowNextest:
             if "install-action" in uses:
                 tool = step.get("with", {}).get("tool", "")
                 tools.append(tool)
-        assert any("cargo-nextest" in t for t in tools), (
-            "Must install cargo-nextest via install-action"
-        )
+        assert any("cargo-nextest" in t for t in tools), "Must install cargo-nextest via install-action"
 
 
 # ── Taskfile – rust:test:all ──
@@ -126,9 +118,7 @@ class TestTaskfileNextest:
     def test_rust_test_all_runs_ignored(self, taskfile: dict) -> None:
         task = taskfile["tasks"]["rust:test:all"]
         cmd = task.get("cmd", "")
-        assert "--run-ignored all" in cmd, (
-            "rust:test:all must use --run-ignored all"
-        )
+        assert "--run-ignored all" in cmd, "rust:test:all must use --run-ignored all"
 
     def test_rust_test_uses_nextest(self, taskfile: dict) -> None:
         task = taskfile["tasks"]["rust:test"]
