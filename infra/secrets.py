@@ -20,7 +20,7 @@ pulumi_access_token = secrets_config.require_secret("PULUMI_ACCESS_TOKEN")
 aws_access_key_id = secrets_config.require_secret("AWS_ACCESS_KEY_ID")
 aws_secret_access_key = secrets_config.require_secret("AWS_SECRET_ACCESS_KEY")
 
-# Purpose-specific API keys (#28)
+# Purpose-specific secrets (#28)
 anthropic_api_key_myxo = secrets_config.require_secret("ANTHROPIC_API_KEY_MYXO")
 anthropic_api_key_scheduled = secrets_config.require_secret("ANTHROPIC_API_KEY_SCHEDULED")
 github_app_private_key = secrets_config.require_secret("GITHUB_APP_PRIVATE_KEY")

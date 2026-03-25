@@ -120,9 +120,7 @@ def test_all_new_secrets_use_require_secret():
     ]
     for name in new_secret_names:
         pattern = rf'require_secret\(\s*"{name}"\s*\)'
-        assert re.search(pattern, src), (
-            f"{name} must be loaded via require_secret(), not plaintext"
-        )
+        assert re.search(pattern, src), f"{name} must be loaded via require_secret(), not plaintext"
 
 
 def test_purpose_based_naming_pattern():
@@ -133,8 +131,7 @@ def test_purpose_based_naming_pattern():
     purpose_keywords = {"MYXO", "SCHEDULED", "APP"}
     found = {kw for kw in purpose_keywords if any(kw in k for k in secret_def_keys)}
     assert found == purpose_keywords, (
-        f"SECRET_DEFS must contain purpose-based keys with {purpose_keywords}, "
-        f"but only found {found}"
+        f"SECRET_DEFS must contain purpose-based keys with {purpose_keywords}, but only found {found}"
     )
 
 
