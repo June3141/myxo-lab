@@ -29,7 +29,8 @@ cargo build
 
 # Set up pre-commit hooks
 echo "Setting up pre-commit hooks..."
-uv run pre-commit install
+uv tool install pre-commit
+pre-commit install
 
 echo ""
 echo "=== Setup complete! ==="
