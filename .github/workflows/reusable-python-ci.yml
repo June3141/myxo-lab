@@ -34,9 +34,9 @@ jobs:
           python-version: ${{ inputs.python_version }}
           enable-cache: true
       - name: Ruff check
-        run: uv run ruff check src/ tests/
+        run: uv run ruff check infra/ tests/
       - name: Ruff format
-        run: uv run ruff format --check src/ tests/
+        run: uv run ruff format --check infra/ tests/
 
   test:
     if: inputs.run_tests
