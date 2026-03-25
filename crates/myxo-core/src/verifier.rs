@@ -82,26 +82,39 @@ impl GitHubVerifier {
         let crab = octocrab::Octocrab::builder()
             .personal_token(token.to_string())
             .build()
-            .map_err(|e| ConfigError::Format(format!("failed to create GitHub client: {e}")))?;
+            .map_err(|e| ConfigError::Api(format!("failed to create GitHub client: {e}")))?;
         Ok(Self { crab })
     }
 
-    /// Fetch labels from a repository and check against expected.
+    /// Fetch all labels from a repository (paginated) and check against expected.
     pub async fn check_labels(
         &self,
         owner: &str,
         repo: &str,
         expected: &[LabelConfig],
     ) -> Result<Vec<CheckResult>, ConfigError> {
-        let labels = self
+        let mut existing = Vec::new();
+        let mut page = self
             .crab
             .issues(owner, repo)
             .list_labels_for_repo()
+            .per_page(100)
             .send()
             .await
-            .map_err(|e| ConfigError::Format(format!("failed to fetch labels: {e}")))?;
+            .map_err(|e| ConfigError::Api(format!("failed to fetch labels: {e}")))?;
 
-        let existing: Vec<String> = labels.items.iter().map(|l| l.name.clone()).collect();
+        existing.extend(page.items.iter().map(|l| l.name.clone()));
+
+        while let Some(next_page) = self
+            .crab
+            .get_page::<octocrab::models::Label>(&page.next)
+            .await
+            .map_err(|e| ConfigError::Api(format!("failed to fetch labels page: {e}")))?
+        {
+            existing.extend(next_page.items.iter().map(|l| l.name.clone()));
+            page = next_page;
+        }
+
         Ok(check_labels_against(&existing, expected))
     }
 
@@ -117,12 +130,13 @@ impl GitHubVerifier {
             .crab
             .get(&route, None::<&()>)
             .await
-            .map_err(|e| ConfigError::Format(format!("failed to fetch secrets: {e}")))?;
+            .map_err(|e| ConfigError::Api(format!("failed to fetch secrets: {e}")))?;
 
-        let existing: Vec<String> = response["secrets"]
-            .as_array()
-            .unwrap_or(&vec![])
-            .iter()
+        let existing: Vec<String> = response
+            .get("secrets")
+            .and_then(|v| v.as_array())
+            .into_iter()
+            .flatten()
             .filter_map(|s| s["name"].as_str().map(String::from))
             .collect();
 
