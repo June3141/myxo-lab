@@ -37,6 +37,8 @@ def _find_stale_resources() -> list[dict]:
 
             try:
                 expiry = datetime.fromisoformat(delete_after)
+                if expiry.tzinfo is None:
+                    expiry = expiry.replace(tzinfo=UTC)
             except ValueError:
                 logger.warning(
                     "Invalid AutoDeleteAfter value '%s' on %s",

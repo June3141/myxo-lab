@@ -54,11 +54,10 @@ aws.iam.RolePolicy(
                     "Action": [
                         "ecs:DescribeTasks",
                         "ecs:ListTasks",
-                        "ecs:StopTask",
                         "ec2:DescribeInstances",
-                        "ec2:TerminateInstances",
                         "tag:GetResources",
                     ],
+                    "Sid": "ReadOnlyStaleResources",
                     "Resource": "*",
                     "Condition": {
                         "StringEquals": {
@@ -96,9 +95,7 @@ cleanup_function = aws.lambda_.Function(
     timeout=300,
     memory_size=128,
     role=cleanup_role.arn,
-    code=pulumi.AssetArchive(
-        {".": pulumi.FileArchive("../lambda/stale_cleanup")}
-    ),
+    code=pulumi.AssetArchive({".": pulumi.FileArchive("../lambda/stale_cleanup")}),
 )
 
 # --- EventBridge Schedule Rule ---------------------------------------------
