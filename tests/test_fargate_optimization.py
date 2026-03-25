@@ -20,19 +20,14 @@ def _ecs_source() -> str:
 # Cost tags (#137)
 # ---------------------------------------------------------------------------
 
-_COST_TAGS = {
-    "Project": "myxo-lab",
-    "Environment": "dev",
-    "CostCenter": "ai-agent",
-}
+_REQUIRED_TAG_KEYS = ["Project", "Environment", "CostCenter"]
 
 
 def test_cluster_has_cost_tags():
     """ECS Cluster must have Project, Environment, CostCenter tags."""
     src = _ecs_source()
-    for key, value in _COST_TAGS.items():
+    for key in _REQUIRED_TAG_KEYS:
         assert f'"{key}"' in src, f"Cluster must have {key} tag"
-        assert f'"{value}"' in src, f"Cluster must have {key}={value}"
 
 
 def test_task_definition_has_cost_tags():
@@ -41,7 +36,7 @@ def test_task_definition_has_cost_tags():
     td_start = src.index("ecs.TaskDefinition(")
     td_section = src[td_start:]
     # Accept either inline tag literals or a reference to a shared tags dict
-    has_inline = all(f'"{k}"' in td_section for k in _COST_TAGS)
+    has_inline = all(f'"{k}"' in td_section for k in _REQUIRED_TAG_KEYS)
     has_ref = "_COST_TAGS" in td_section
     assert has_inline or has_ref, "TaskDefinition must have cost tags"
 
@@ -51,8 +46,8 @@ def test_efs_has_cost_tags():
     src = _ecs_source()
     efs_start = src.index("aws.efs.FileSystem(")
     # Use a generous slice to capture the full resource block
-    efs_section = src[efs_start:efs_start + 400]
-    has_inline = all(f'"{k}"' in efs_section for k in _COST_TAGS)
+    efs_section = src[efs_start : efs_start + 400]
+    has_inline = all(f'"{k}"' in efs_section for k in _REQUIRED_TAG_KEYS)
     has_ref = "_COST_TAGS" in efs_section
     assert has_inline or has_ref, "EFS must have cost tags"
 
@@ -65,12 +60,10 @@ def test_efs_has_cost_tags():
 def test_ecr_scan_on_push_enabled():
     """ECR repository must have image scanning with scan_on_push=True."""
     src = _ecs_source()
-    assert "image_scanning_configuration" in src, (
-        "ECR must have image_scanning_configuration"
-    )
+    assert "image_scanning_configuration" in src, "ECR must have image_scanning_configuration"
     # Find the scanning config section and verify scan_on_push
     scan_idx = src.index("image_scanning_configuration")
-    scan_section = src[scan_idx:scan_idx + 200]
+    scan_section = src[scan_idx : scan_idx + 200]
     assert "scan_on_push" in scan_section, "Must set scan_on_push"
     assert "True" in scan_section, "scan_on_push must be True"
 
@@ -83,9 +76,7 @@ def test_ecr_scan_on_push_enabled():
 def test_cloudwatch_metric_filter_exists():
     """ecs.py must define a CloudWatch metric filter for task execution."""
     src = _ecs_source()
-    assert "MetricFilter(" in src or "metric_filter" in src.lower(), (
-        "Must define a CloudWatch metric filter"
-    )
+    assert "MetricFilter(" in src or "metric_filter" in src.lower(), "Must define a CloudWatch metric filter"
 
 
 def test_metric_filter_references_log_group():

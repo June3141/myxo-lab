@@ -19,7 +19,7 @@ _region = config.require("region")
 # --- Cost tags (#137) --------------------------------------------------------
 _COST_TAGS = {
     "Project": "myxo-lab",
-    "Environment": "dev",
+    "Environment": pulumi.get_stack(),
     "CostCenter": "ai-agent",
 }
 
@@ -223,11 +223,11 @@ task_execution_metric_filter = cloudwatch.LogMetricFilter(
     "myxo-task-execution-metric",
     name="myxo-task-execution-time",
     log_group_name=log_group.name,
-    pattern="TASK_EXECUTION_TIME",
+    pattern="TASK_COMPLETE",
     metric_transformation=cloudwatch.LogMetricFilterMetricTransformationArgs(
-        name="TaskExecutionTime",
+        name="TaskCompletionCount",
         namespace="Myxo/ECS",
-        value="$executionTime",
+        value="1",
         default_value="0",
     ),
 )
