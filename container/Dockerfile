@@ -45,7 +45,7 @@ RUN apt-get update \
 # Copy Nix store and profiles from builder
 COPY --from=builder /nix /nix
 COPY --from=builder /root/.nix-profile /root/.nix-profile
-COPY --from=builder /root/.local/bin/devbox /usr/local/bin/devbox
+COPY --from=builder /usr/local/bin/devbox /usr/local/bin/devbox
 COPY --from=builder /app /app
 
 ENV PATH="/root/.nix-profile/bin:${PATH}"
