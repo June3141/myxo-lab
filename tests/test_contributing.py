@@ -39,9 +39,7 @@ class TestContributingSections:
 
     @pytest.mark.parametrize("section", REQUIRED_SECTIONS)
     def test_has_required_section(self, content: str, section: str) -> None:
-        assert section.lower() in content.lower(), (
-            f"CONTRIBUTING.md must have a section about '{section}'"
-        )
+        assert section.lower() in content.lower(), f"CONTRIBUTING.md must have a section about '{section}'"
 
 
 class TestEnvExample:
