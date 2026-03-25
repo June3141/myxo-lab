@@ -1,7 +1,13 @@
+pub fn init() {}
+
+pub fn sync() {}
+
+pub fn verify() {}
+
 #[cfg(test)]
 mod tests {
     #[test]
     fn smoke() {
-        assert!(true);
+        // Verify the crate compiles and links correctly
     }
 }
