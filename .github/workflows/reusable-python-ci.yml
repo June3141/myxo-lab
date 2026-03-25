@@ -47,8 +47,8 @@ jobs:
         with:
           python-version: ${{ inputs.python_version }}
           enable-cache: true
-      - name: Run tests with coverage
-        run: uv run pytest -m "small or medium" --cov=src/myxo --cov-report=term-missing --cov-fail-under=80
+      - name: Run tests
+        run: uv run pytest -m "small or medium"
 
   typecheck:
     if: inputs.run_type_check
@@ -60,4 +60,4 @@ jobs:
           python-version: ${{ inputs.python_version }}
           enable-cache: true
       - name: Type check
-        run: uv run ty check src/
+        run: uv run ty check infra/

@@ -4,25 +4,9 @@ version = "0.1.0"
 description = "AI Agent Infrastructure Platform — inspired by the distributed intelligence of slime molds."
 requires-python = ">=3.13"
 dependencies = [
-    "typer>=0.12",
-    "httpx",
-    "pyjwt[crypto]",
-    "pyyaml",
-    "rich",
     "pulumi>=3.227.0",
     "pulumi-github>=6.12.1",
 ]
-
-[project.scripts]
-mxl = "myxo.cli:app"
-myxo = "myxo.cli:app"  # kept for migration period
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/myxo"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -36,6 +20,7 @@ markers = [
 dev = [
     "pytest>=9.0.2",
     "pytest-cov>=6.0",
+    "pyyaml>=6.0",
     "ruff>=0.15",
     "ty>=0.0.1a7",
 ]

@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - "src/**"
+      - "infra/**"
       - "tests/**"
       - "pyproject.toml"
       - "uv.lock"
