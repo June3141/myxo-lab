@@ -36,7 +36,7 @@ macro_rules! define_converter {
                 $target
             }
             fn output_path(&self, root: &Path) -> PathBuf {
-                $path(root)
+                ($path)(root)
             }
         }
     };
