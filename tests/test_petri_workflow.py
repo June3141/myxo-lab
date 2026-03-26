@@ -73,6 +73,4 @@ def test_actions_sha_pinned():
             uses_ref = stripped.split("uses:")[-1].strip()
             if "/" in uses_ref and "@" in uses_ref:
                 _, _, ref = uses_ref.partition("@")
-                assert re.fullmatch(r"[0-9a-f]{40}", ref.split()[0]), (
-                    f"Action must be SHA-pinned: {uses_ref}"
-                )
+                assert re.fullmatch(r"[0-9a-f]{40}", ref.split()[0]), f"Action must be SHA-pinned: {uses_ref}"
