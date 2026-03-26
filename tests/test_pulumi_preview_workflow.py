@@ -3,27 +3,20 @@
 import re
 from pathlib import Path
 
-import yaml
+from helpers import load_workflow
 
 WORKFLOW_PATH = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "pulumi-preview.yml"
 
 
-def _load_workflow() -> dict:
-    """Load and parse the workflow YAML."""
-    assert WORKFLOW_PATH.exists(), f"Workflow file not found: {WORKFLOW_PATH}"
-    content = WORKFLOW_PATH.read_text()
-    return yaml.safe_load(content)
-
-
 def test_workflow_file_exists_and_is_valid_yaml():
     """The workflow file must exist and be parseable YAML."""
-    wf = _load_workflow()
+    wf = load_workflow(WORKFLOW_PATH)
     assert isinstance(wf, dict)
 
 
 def test_trigger_on_pull_request_with_paths_filter():
     """Workflow triggers on pull_request with paths filter for infra/**."""
-    wf = _load_workflow()
+    wf = load_workflow(WORKFLOW_PATH)
     # PyYAML parses bare `on` as boolean True
     pr_trigger = wf.get("on") or wf.get(True)
     pr_trigger = pr_trigger["pull_request"]
@@ -41,7 +34,7 @@ def test_references_pulumi_actions():
 
 def test_permissions_are_correct():
     """Workflow needs contents:read and pull-requests:write."""
-    wf = _load_workflow()
+    wf = load_workflow(WORKFLOW_PATH)
     # Permissions can be at top-level or job-level
     perms = wf.get("permissions") or {}
     # Also check job-level permissions
@@ -57,7 +50,7 @@ def test_permissions_are_correct():
 
 def test_no_direct_interpolation_in_run_blocks():
     """No direct ${{ }} interpolation in run: blocks (security)."""
-    wf = _load_workflow()
+    wf = load_workflow(WORKFLOW_PATH)
     for job_name, job in wf.get("jobs", {}).items():
         if not isinstance(job, dict):
             continue

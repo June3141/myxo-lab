@@ -3,26 +3,11 @@
 import re
 from pathlib import Path
 
-import yaml
+from helpers import get_on_block, is_sha_pinned, load_workflow
 
 ROOT = Path(__file__).parent.parent
 CHANGELOG_PATH = ROOT / "CHANGELOG.md"
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "release.yml"
-
-
-def _load_workflow() -> dict:
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
-    assert isinstance(data, dict), "Workflow YAML must be a valid mapping"
-    return data
-
-
-def _get_on_block(data: dict) -> dict:
-    return data.get(True, data.get("on", {}))
-
-
-def _is_sha_pinned(ref: str) -> bool:
-    _, _, version = ref.partition("@")
-    return bool(re.fullmatch(r"[0-9a-f]{40}", version))
 
 
 # ── CHANGELOG.md ──
@@ -60,38 +45,38 @@ def test_release_workflow_exists():
 
 
 def test_release_triggers_on_tag_push():
-    data = _load_workflow()
-    on_block = _get_on_block(data)
+    data = load_workflow(WORKFLOW_PATH)
+    on_block = get_on_block(data)
     push = on_block.get("push", {})
     tags = push.get("tags", [])
     assert any("v*" in t or "v**" in t for t in tags), "Must trigger on v* tag push"
 
 
 def test_release_has_permissions():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     permissions = data.get("permissions", {})
     assert "contents" in permissions, "Must declare contents permission"
 
 
 def test_release_has_concurrency():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     assert "concurrency" in data, "Must have concurrency block"
     concurrency = data["concurrency"]
     assert "group" in concurrency
 
 
 def test_release_all_actions_sha_pinned():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     for job_name, job in data.get("jobs", {}).items():
         for step in job.get("steps", []):
             uses = step.get("uses", "")
             if uses and "/" in uses:
-                assert _is_sha_pinned(uses), f"Action must be SHA-pinned in job '{job_name}', got: {uses}"
+                assert is_sha_pinned(uses), f"Action must be SHA-pinned in job '{job_name}', got: {uses}"
 
 
 def test_release_creates_github_release():
     """Release job must create a GitHub release (via gh CLI or action)."""
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     all_steps = []
     for job in data.get("jobs", {}).values():
         all_steps.extend(job.get("steps", []))

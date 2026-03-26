@@ -1,26 +1,10 @@
 """Tests for Rust CI workflow configuration."""
 
-import re
 from pathlib import Path
 
-import yaml
+from helpers import get_on_block, is_sha_pinned, load_workflow
 
 WORKFLOW_PATH = Path(__file__).parent.parent / ".github" / "workflows" / "rust.yml"
-
-
-def _load_workflow() -> dict:
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
-    assert isinstance(data, dict), "Workflow YAML must be a valid mapping"
-    return data
-
-
-def _get_on_block(data: dict) -> dict:
-    return data.get(True, data.get("on", {}))
-
-
-def _is_sha_pinned(ref: str) -> bool:
-    _, _, version = ref.partition("@")
-    return bool(re.fullmatch(r"[0-9a-f]{40}", version))
 
 
 # ── structure ──
@@ -31,13 +15,13 @@ def test_workflow_file_exists():
 
 
 def test_has_permissions_block():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     permissions = data.get("permissions", {})
     assert permissions.get("contents") == "read", "Must declare contents: read"
 
 
 def test_has_concurrency_block():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     assert "concurrency" in data, "Must have concurrency block"
     concurrency = data["concurrency"]
     assert "group" in concurrency
@@ -45,8 +29,8 @@ def test_has_concurrency_block():
 
 
 def test_triggers_on_pull_request_with_paths():
-    data = _load_workflow()
-    on_block = _get_on_block(data)
+    data = load_workflow(WORKFLOW_PATH)
+    on_block = get_on_block(data)
     pr = on_block.get("pull_request", {})
     paths = pr.get("paths", [])
     assert "crates/**" in paths
@@ -57,19 +41,19 @@ def test_triggers_on_pull_request_with_paths():
 
 
 def test_has_lint_job():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     assert "lint" in data["jobs"], "Must have separate lint job"
 
 
 def test_lint_job_runs_fmt():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     steps = data["jobs"]["lint"].get("steps", [])
     run_cmds = [s["run"] for s in steps if "run" in s]
     assert any("cargo fmt" in cmd for cmd in run_cmds)
 
 
 def test_lint_job_runs_clippy():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     steps = data["jobs"]["lint"].get("steps", [])
     run_cmds = [s["run"] for s in steps if "run" in s]
     assert any("cargo clippy" in cmd for cmd in run_cmds)
@@ -79,12 +63,12 @@ def test_lint_job_runs_clippy():
 
 
 def test_has_test_job():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     assert "test" in data["jobs"], "Must have separate test job"
 
 
 def test_test_job_uses_llvm_cov():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     steps = data["jobs"]["test"].get("steps", [])
     run_cmds = [s["run"] for s in steps if "run" in s]
     uses_refs = [s["uses"] for s in steps if "uses" in s]
@@ -93,7 +77,7 @@ def test_test_job_uses_llvm_cov():
 
 
 def test_test_job_enforces_coverage_threshold():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     steps = data["jobs"]["test"].get("steps", [])
     run_cmds = [s["run"] for s in steps if "run" in s]
     assert any("fail-under-lines" in cmd for cmd in run_cmds), "Must enforce coverage threshold"
@@ -103,9 +87,9 @@ def test_test_job_enforces_coverage_threshold():
 
 
 def test_all_actions_sha_pinned():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             uses = step.get("uses", "")
             if uses and "/" in uses:
-                assert _is_sha_pinned(uses), f"Action must be SHA-pinned, got: {uses}"
+                assert is_sha_pinned(uses), f"Action must be SHA-pinned, got: {uses}"

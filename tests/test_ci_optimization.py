@@ -1,17 +1,6 @@
 """Tests for CI pipeline optimization strategy."""
 
-from pathlib import Path
-
-import yaml
-
-WORKFLOWS_DIR = Path(__file__).parent.parent / ".github" / "workflows"
-
-
-def _load_workflow(name: str) -> dict:
-    path = WORKFLOWS_DIR / name
-    data = yaml.safe_load(path.read_text())
-    assert isinstance(data, dict)
-    return data
+from helpers import WORKFLOWS_DIR, load_workflow
 
 
 def _get_triggers(data: dict) -> dict:
@@ -24,7 +13,7 @@ def _get_triggers(data: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# uv cache — all setup-uv steps should enable caching
+# uv cache -- all setup-uv steps should enable caching
 # ---------------------------------------------------------------------------
 
 
@@ -40,19 +29,19 @@ def test_pulumi_preview_uses_uv_cache():
 
 
 # ---------------------------------------------------------------------------
-# paths filter — lint.yml should only run on relevant changes
+# paths filter -- lint.yml should only run on relevant changes
 # ---------------------------------------------------------------------------
 
 
 def test_lint_workflow_has_paths_filter():
-    data = _load_workflow("lint.yml")
+    data = load_workflow(WORKFLOWS_DIR / "lint.yml")
     triggers = _get_triggers(data)
     pr_config = triggers.get("pull_request", {})
     assert "paths" in pr_config, "lint.yml should have paths filter on pull_request"
 
 
 def test_lint_workflow_paths_include_infra_and_tests():
-    data = _load_workflow("lint.yml")
+    data = load_workflow(WORKFLOWS_DIR / "lint.yml")
     triggers = _get_triggers(data)
     paths = triggers["pull_request"]["paths"]
     path_str = " ".join(paths)

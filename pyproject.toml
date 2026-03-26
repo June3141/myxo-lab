@@ -10,6 +10,7 @@ dependencies = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
 markers = [
     "small: Fast unit tests (no network, no disk beyond tmp_path, no DB)",
     "medium: Integration tests (may use network, disk, or local services)",
