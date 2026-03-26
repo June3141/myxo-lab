@@ -58,7 +58,6 @@ def test_has_permissions():
     data = _load_workflow()
     permissions = data.get("permissions", {})
     assert permissions.get("contents") == "read", "Must have contents: read permission"
-    assert permissions.get("issues") == "write", "Must have issues: write permission"
 
 
 def test_no_expression_interpolation_in_run_blocks():

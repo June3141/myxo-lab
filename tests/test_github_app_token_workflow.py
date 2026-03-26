@@ -44,6 +44,4 @@ def test_app_token_uses_secrets():
     for wf_name in APP_TOKEN_WORKFLOWS:
         content = (WORKFLOWS_DIR / wf_name).read_text()
         assert "APP_ID" in content or "app-id" in content, f"{wf_name} must reference App ID"
-        assert "PRIVATE_KEY" in content or "private-key" in content, (
-            f"{wf_name} must reference private key"
-        )
+        assert "PRIVATE_KEY" in content or "private-key" in content, f"{wf_name} must reference private key"
