@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import pytest
 from helpers import get_on_block, is_sha_pinned, load_workflow
 
 REUSABLE_CI_PATH = Path(__file__).parent.parent / ".github" / "workflows" / "reusable-python-ci.yml"
@@ -29,60 +30,44 @@ def test_has_workflow_call_trigger():
     assert "workflow_call" in on_block, "Must have workflow_call trigger"
 
 
-def test_workflow_call_has_python_version_input():
+WORKFLOW_CALL_INPUTS = [
+    pytest.param("python_version", "3.13", id="python_version"),
+    pytest.param("run_tests", True, id="run_tests"),
+    pytest.param("run_lint", True, id="run_lint"),
+]
+
+
+@pytest.mark.parametrize("input_name,expected_default", WORKFLOW_CALL_INPUTS)
+def test_workflow_call_has_input(input_name: str, expected_default):
     data = load_workflow(REUSABLE_CI_PATH)
     on_block = get_on_block(data)
     inputs = on_block["workflow_call"].get("inputs", {})
-    pv = inputs.get("python_version", {})
-    assert pv, "Must define python_version input"
-    assert pv.get("default") == "3.13", "python_version default must be '3.13'"
-
-
-def test_workflow_call_has_run_tests_input():
-    data = load_workflow(REUSABLE_CI_PATH)
-    on_block = get_on_block(data)
-    inputs = on_block["workflow_call"].get("inputs", {})
-    rt = inputs.get("run_tests", {})
-    assert rt, "Must define run_tests input"
-    assert rt.get("default") is True, "run_tests default must be true"
-
-
-def test_workflow_call_has_run_lint_input():
-    data = load_workflow(REUSABLE_CI_PATH)
-    on_block = get_on_block(data)
-    inputs = on_block["workflow_call"].get("inputs", {})
-    rl = inputs.get("run_lint", {})
-    assert rl, "Must define run_lint input"
-    assert rl.get("default") is True, "run_lint default must be true"
+    entry = inputs.get(input_name, {})
+    assert entry, f"Must define {input_name} input"
+    assert entry.get("default") == expected_default, f"{input_name} default must be {expected_default!r}"
 
 
 # ── jobs ──
 
+REQUIRED_JOBS = ["lint", "test"]
 
-def test_defines_lint_job():
+
+@pytest.mark.parametrize("job_name", REQUIRED_JOBS)
+def test_defines_job(job_name: str):
     data = load_workflow(REUSABLE_CI_PATH)
     jobs = data.get("jobs", {})
-    assert "lint" in jobs, "Must define lint job"
+    assert job_name in jobs, f"Must define {job_name} job"
 
 
-def test_defines_test_job():
-    data = load_workflow(REUSABLE_CI_PATH)
-    jobs = data.get("jobs", {})
-    assert "test" in jobs, "Must define test job"
+RUFF_COMMANDS = ["ruff check", "ruff format"]
 
 
-def test_lint_job_runs_ruff_check():
+@pytest.mark.parametrize("ruff_cmd", RUFF_COMMANDS)
+def test_lint_job_runs_ruff_command(ruff_cmd: str):
     data = load_workflow(REUSABLE_CI_PATH)
     lint_steps = data["jobs"]["lint"].get("steps", [])
     run_cmds = [s["run"] for s in lint_steps if "run" in s]
-    assert any("ruff check" in cmd for cmd in run_cmds), "lint job must run ruff check"
-
-
-def test_lint_job_runs_ruff_format():
-    data = load_workflow(REUSABLE_CI_PATH)
-    lint_steps = data["jobs"]["lint"].get("steps", [])
-    run_cmds = [s["run"] for s in lint_steps if "run" in s]
-    assert any("ruff format" in cmd for cmd in run_cmds), "lint job must run ruff format"
+    assert any(ruff_cmd in cmd for cmd in run_cmds), f"lint job must run {ruff_cmd}"
 
 
 def test_test_job_runs_pytest_with_markers():
@@ -96,29 +81,23 @@ def test_test_job_runs_pytest_with_markers():
 
 # ── actions versions ──
 
+SHA_PINNED_ACTIONS = [
+    pytest.param("actions/checkout", id="checkout"),
+    pytest.param("setup-uv", id="setup-uv"),
+]
 
-def test_uses_actions_checkout_sha_pinned():
+
+@pytest.mark.parametrize("action_name", SHA_PINNED_ACTIONS)
+def test_action_is_sha_pinned(action_name: str):
     data = load_workflow(REUSABLE_CI_PATH)
-    checkout_found = False
+    found = False
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             uses = step.get("uses", "")
-            if "actions/checkout" in uses:
-                assert is_sha_pinned(uses), f"actions/checkout must be SHA-pinned, got: {uses}"
-                checkout_found = True
-    assert checkout_found, "Must use actions/checkout"
-
-
-def test_uses_setup_uv_sha_pinned():
-    data = load_workflow(REUSABLE_CI_PATH)
-    uv_found = False
-    for job in data.get("jobs", {}).values():
-        for step in job.get("steps", []):
-            uses = step.get("uses", "")
-            if "setup-uv" in uses:
-                assert is_sha_pinned(uses), f"astral-sh/setup-uv must be SHA-pinned, got: {uses}"
-                uv_found = True
-    assert uv_found, "Must use astral-sh/setup-uv"
+            if action_name in uses:
+                assert is_sha_pinned(uses), f"{action_name} must be SHA-pinned, got: {uses}"
+                found = True
+    assert found, f"Must use {action_name}"
 
 
 def test_setup_uv_enables_cache():

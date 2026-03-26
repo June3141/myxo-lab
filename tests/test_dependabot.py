@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import pytest
 import yaml
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -41,18 +42,12 @@ def _get_ecosystem(data: dict, ecosystem: str) -> dict | None:
     return None
 
 
-def test_pip_ecosystem_configured():
-    """pip ecosystem must be configured for Python dependencies."""
+@pytest.mark.parametrize("ecosystem", ["pip", "github-actions"])
+def test_ecosystem_configured(ecosystem: str):
+    """Required ecosystems must be configured."""
     data = yaml.safe_load(DEPENDABOT_PATH.read_text())
-    entry = _get_ecosystem(data, "pip")
-    assert entry is not None, "Missing pip ecosystem configuration"
-
-
-def test_github_actions_ecosystem_configured():
-    """github-actions ecosystem must be configured."""
-    data = yaml.safe_load(DEPENDABOT_PATH.read_text())
-    entry = _get_ecosystem(data, "github-actions")
-    assert entry is not None, "Missing github-actions ecosystem configuration"
+    entry = _get_ecosystem(data, ecosystem)
+    assert entry is not None, f"Missing {ecosystem} ecosystem configuration"
 
 
 def test_target_branch_is_develop():

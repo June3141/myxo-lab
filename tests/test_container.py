@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 CONTAINER_DIR = Path(__file__).parent.parent / "container"
 
 
@@ -23,25 +25,13 @@ class TestDevboxJson:
         assert isinstance(data["packages"], list)
         assert len(data["packages"]) > 0
 
-    def test_devbox_json_contains_git(self):
-        data = json.loads(CONTAINER_DIR.joinpath("devbox.json").read_text())
-        pkg_str = " ".join(data["packages"])
-        assert "git" in pkg_str
+    REQUIRED_PACKAGES = ["git", "gh", "python", "nodejs"]
 
-    def test_devbox_json_contains_gh(self):
+    @pytest.mark.parametrize("package", REQUIRED_PACKAGES)
+    def test_devbox_json_contains_package(self, package: str):
         data = json.loads(CONTAINER_DIR.joinpath("devbox.json").read_text())
         pkg_str = " ".join(data["packages"])
-        assert "gh" in pkg_str
-
-    def test_devbox_json_contains_python(self):
-        data = json.loads(CONTAINER_DIR.joinpath("devbox.json").read_text())
-        pkg_str = " ".join(data["packages"])
-        assert "python" in pkg_str
-
-    def test_devbox_json_contains_nodejs(self):
-        data = json.loads(CONTAINER_DIR.joinpath("devbox.json").read_text())
-        pkg_str = " ".join(data["packages"])
-        assert "nodejs" in pkg_str
+        assert package in pkg_str
 
 
 class TestDockerfile:
