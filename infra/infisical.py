@@ -14,6 +14,7 @@ import common
 import ecs as ecs_infra
 import pulumi
 import pulumi_aws as aws
+from constants import LOG_RETENTION_DAYS, cost_tags
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -34,11 +35,7 @@ ingress_cidr_blocks: list[str] = config.get_object("ingress_cidr_blocks") or [
     vpc_config.require("cidr_block"),
 ]
 
-_COST_TAGS = {
-    "Project": "myxo-lab",
-    "Environment": pulumi.get_stack(),
-    "CostCenter": "secrets-management",
-}
+_COST_TAGS = cost_tags(cost_center="secrets-management")
 
 # ---------------------------------------------------------------------------
 # SSM Parameter Store — secrets for ECS container
@@ -73,6 +70,7 @@ ssm_auth_secret = aws.ssm.Parameter(
 log_group = common.create_log_group(
     "infisical-log-group",
     "/ecs/infisical",
+    retention_in_days=LOG_RETENTION_DAYS,
     tags=_COST_TAGS,
 )
 

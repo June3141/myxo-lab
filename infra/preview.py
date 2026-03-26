@@ -7,6 +7,7 @@ before merge.  Uses FARGATE_SPOT to keep costs around ~$1/day.
 import ecs
 import pulumi
 import pulumi_aws as aws
+from constants import PREVIEW_API_PORT
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -55,8 +56,8 @@ class PreviewEnvironment:
             ingress=[
                 aws.ec2.SecurityGroupIngressArgs(
                     protocol="tcp",
-                    from_port=8080,
-                    to_port=8080,
+                    from_port=PREVIEW_API_PORT,
+                    to_port=PREVIEW_API_PORT,
                     cidr_blocks=["0.0.0.0/0"],
                     description="API preview port",
                 ),
@@ -95,7 +96,7 @@ class PreviewEnvironment:
 
         # --- Export info -------------------------------------------------------
         # Note: actual URL requires ALB/Cloud Map setup (future work).
-        # For now, access via task public IP on port 8080.
+        # For now, access via task public IP on the preview API port.
         self.service_name = name
 
 

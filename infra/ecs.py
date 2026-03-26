@@ -13,16 +13,13 @@ import json
 import common
 import pulumi
 import pulumi_aws as aws
+from constants import LOG_RETENTION_DAYS, cost_tags
 
 config = pulumi.Config("aws")
 _region = config.require("region")
 
 # --- Cost tags (#137) --------------------------------------------------------
-_COST_TAGS = {
-    "Project": "myxo-lab",
-    "Environment": pulumi.get_stack(),
-    "CostCenter": "ai-agent",
-}
+_COST_TAGS = cost_tags(cost_center="ai-agent")
 
 # --- providers ---------------------------------------------------------------
 ecs = aws.ecs
@@ -31,7 +28,7 @@ iam = aws.iam
 cloudwatch = aws.cloudwatch
 
 # --- CloudWatch Log Group ----------------------------------------------------
-log_group = common.create_log_group("myxo-log-group", "/ecs/myxo")
+log_group = common.create_log_group("myxo-log-group", "/ecs/myxo", retention_in_days=LOG_RETENTION_DAYS)
 
 # --- ECR Repository ----------------------------------------------------------
 repo = ecr.Repository(

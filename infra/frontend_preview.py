@@ -13,7 +13,7 @@ import pulumi_aws as aws
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-config = pulumi.Config("frontend_preview")
+config = pulumi.Config("frontend-preview")
 pr_number = config.get_int("pr_number") or 0
 
 
