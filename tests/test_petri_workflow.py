@@ -9,6 +9,7 @@ WORKFLOW_PATH = Path(__file__).resolve().parent.parent / ".github" / "workflows"
 
 
 def _load_workflow() -> dict:
+    assert WORKFLOW_PATH.is_file(), "petri-preview.yml must exist"
     data = yaml.safe_load(WORKFLOW_PATH.read_text())
     assert isinstance(data, dict)
     return data
@@ -28,6 +29,7 @@ def test_triggers_on_pr_open_and_close():
     pr = on_block.get("pull_request", {})
     types = pr.get("types", [])
     assert "opened" in types, "Must trigger on PR opened"
+    assert "synchronize" in types, "Must trigger on PR synchronize"
     assert "closed" in types, "Must trigger on PR closed"
 
 
