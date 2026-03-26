@@ -16,6 +16,13 @@ jobs:
   move-card:
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.MYXO_APP_ID }}
+          private-key: ${{ secrets.GITHUB_APP_PRIVATE_KEY }}
+
       - name: Determine target column
         id: column
         env:
@@ -33,7 +40,7 @@ jobs:
       - name: Move issue on project board
         if: steps.column.outputs.column != ''
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           TARGET_COLUMN: ${{ steps.column.outputs.column }}
           REPO_OWNER: ${{ github.repository_owner }}
