@@ -7,6 +7,7 @@ import ecs
 import frontend_preview
 import github_app
 import infisical
+import infisical_client
 import preview
 import pulumi
 import pulumi_github as github
@@ -19,6 +20,7 @@ __all__ = [
     "frontend_preview",
     "github_app",
     "infisical",
+    "infisical_client",
     "preview",
     "secrets",
     "stale_cleanup",
