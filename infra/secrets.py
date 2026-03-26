@@ -24,6 +24,7 @@ aws_secret_access_key = secrets_config.require_secret("AWS_SECRET_ACCESS_KEY")
 anthropic_api_key_myxo = secrets_config.require_secret("ANTHROPIC_API_KEY_MYXO")
 anthropic_api_key_scheduled = secrets_config.require_secret("ANTHROPIC_API_KEY_SCHEDULED")
 github_app_private_key = secrets_config.require_secret("GITHUB_APP_PRIVATE_KEY")
+myxo_app_id = secrets_config.require_secret("MYXO_APP_ID")
 
 # ---------------------------------------------------------------------------
 # GitHub Environments
@@ -56,6 +57,7 @@ SECRET_DEFS: dict[str, pulumi.Output[str]] = {
     "ANTHROPIC_API_KEY_MYXO": anthropic_api_key_myxo,
     "ANTHROPIC_API_KEY_SCHEDULED": anthropic_api_key_scheduled,
     "GITHUB_APP_PRIVATE_KEY": github_app_private_key,
+    "MYXO_APP_ID": myxo_app_id,
 }
 
 for secret_name, secret_value in SECRET_DEFS.items():
