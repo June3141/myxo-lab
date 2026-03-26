@@ -74,17 +74,16 @@ def test_secret_mapping_categorizes_sources():
 
 
 def test_references_infisical_project():
-    """infisical_client.py must reference an Infisical project identifier."""
+    """infisical_client.py must use Pulumi config for project ID."""
     src = _client_source()
-    has_project = "project" in src.lower() or "INFISICAL_PROJECT" in src or "project_id" in src
-    assert has_project, "infisical_client.py must reference Infisical project configuration"
+    assert 'get_secret("PROJECT_ID")' in src, "Must use config.get_secret for PROJECT_ID"
 
 
 def test_references_infisical_environment():
-    """infisical_client.py must reference Infisical environment (dev/staging/prod)."""
+    """infisical_client.py must use ENVIRONMENT_MAP for stack-to-env mapping."""
     src = _client_source()
-    has_env = "environment" in src.lower()
-    assert has_env, "infisical_client.py must reference Infisical environment"
+    assert "ENVIRONMENT_MAP" in src, "Must define ENVIRONMENT_MAP"
+    assert "pulumi.get_stack()" in src, "Must use pulumi.get_stack() for environment selection"
 
 
 def test_environment_values():

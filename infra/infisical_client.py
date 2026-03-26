@@ -16,21 +16,24 @@ config = pulumi.Config("infisical")
 stack = pulumi.get_stack()
 
 # Infisical project identifier (from Pulumi encrypted config)
-infisical_project_id = config.require_secret("PROJECT_ID")
-
-# Infisical client credentials for SDK authentication
-infisical_client_id = config.require_secret("CLIENT_ID")
-infisical_client_secret = config.require_secret("CLIENT_SECRET")
+# Using get_secret to avoid requiring config before Infisical is fully set up
+infisical_project_id = config.get_secret("PROJECT_ID")
+infisical_client_id = config.get_secret("CLIENT_ID")
+infisical_client_secret = config.get_secret("CLIENT_SECRET")
 
 # ---------------------------------------------------------------------------
 # Environment mapping — Pulumi stack → Infisical environment slug
 # ---------------------------------------------------------------------------
 ENVIRONMENT_MAP: dict[str, str] = {
     "dev": "dev",
+    "development": "dev",
     "staging": "staging",
     "prod": "prod",
+    "production": "prod",
 }
 
+if stack not in ENVIRONMENT_MAP:
+    pulumi.log.warn(f"Unknown stack '{stack}' — defaulting Infisical environment to 'dev'")
 infisical_environment = ENVIRONMENT_MAP.get(stack, "dev")
 
 # ---------------------------------------------------------------------------
@@ -40,9 +43,9 @@ infisical_environment = ENVIRONMENT_MAP.get(stack, "dev")
 #   - source: where the secret currently lives
 #       "infisical"       → retrieve dynamically via Infisical SDK
 #       "github_secrets"  → keep in GitHub Actions secrets (Pulumi-managed)
-#   - path: Infisical secret path (only for source="infisical")
+#   - path: Infisical secret path (required for source="infisical")
 # ---------------------------------------------------------------------------
-SECRET_MAPPING: dict[str, dict[str, str]] = {
+SECRET_MAPPING: dict[str, dict[str, str | None]] = {
     # Phase 1: Migrate API keys to Infisical (dynamic retrieval)
     "ANTHROPIC_API_KEY_MYXO": {
         "source": "infisical",
@@ -53,27 +56,12 @@ SECRET_MAPPING: dict[str, dict[str, str]] = {
         "path": "/api-keys/anthropic-scheduled",
     },
     # Phase 2: Keep infrastructure credentials in GitHub Secrets for now
-    "AWS_ACCESS_KEY_ID": {
-        "source": "github_secrets",
-        "path": "",
-    },
-    "AWS_SECRET_ACCESS_KEY": {
-        "source": "github_secrets",
-        "path": "",
-    },
-    "PULUMI_ACCESS_TOKEN": {
-        "source": "github_secrets",
-        "path": "",
-    },
+    "AWS_ACCESS_KEY_ID": {"source": "github_secrets", "path": None},
+    "AWS_SECRET_ACCESS_KEY": {"source": "github_secrets", "path": None},
+    "PULUMI_ACCESS_TOKEN": {"source": "github_secrets", "path": None},
     # GitHub App credentials — keep in GitHub Secrets
-    "GITHUB_APP_PRIVATE_KEY": {
-        "source": "github_secrets",
-        "path": "",
-    },
-    "MYXO_APP_ID": {
-        "source": "github_secrets",
-        "path": "",
-    },
+    "GITHUB_APP_PRIVATE_KEY": {"source": "github_secrets", "path": None},
+    "MYXO_APP_ID": {"source": "github_secrets", "path": None},
 }
 
 # Derived lists for convenience
