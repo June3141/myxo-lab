@@ -1,15 +1,18 @@
 """Myxo Lab infrastructure definition."""
 
-import secrets  # noqa: F401 — GitHub Secrets & Environments
+import secrets
 
-import cleanup  # noqa: F401 — PR cleanup Lambda resources
-import ecs  # noqa: F401 — ECS Fargate resources
-import github_app  # noqa: F401 — GitHub App registration
-import infisical  # noqa: F401 — Infisical secrets manager
-import preview  # noqa: F401 — ECS Fargate preview environments
+import cleanup
+import ecs
+import github_app
+import infisical
+import preview
 import pulumi
 import pulumi_github as github
-import stale_cleanup  # noqa: F401 — Stale resource cleanup Lambda + EventBridge
+import stale_cleanup
+
+# Pulumi registers resources on import — list modules explicitly for ruff F401
+__all__ = ["cleanup", "ecs", "github_app", "infisical", "preview", "secrets", "stale_cleanup"]
 
 # ---------------------------------------------------------------------------
 # Configuration
