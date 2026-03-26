@@ -30,7 +30,7 @@ class FrontendPreviewEnvironment:
     """
 
     def __init__(self, pr_number: int) -> None:
-        stack = pulumi.get_stack()
+        stack = pulumi.get_stack().lower().replace("_", "-")
         name = f"myxo-fe-preview-{stack}-pr-{pr_number}"
 
         # --- S3 Bucket --------------------------------------------------------
@@ -114,7 +114,11 @@ class FrontendPreviewEnvironment:
         aws.s3.BucketPolicy(
             f"{name}-bucket-policy",
             bucket=self.bucket.id,
-            policy=pulumi.Output.all(self.bucket.arn, self.distribution.arn).apply(
+            policy=pulumi.Output.all(
+                self.bucket.arn,
+                self.distribution.arn,
+                aws.get_caller_identity().account_id,
+            ).apply(
                 lambda args: json.dumps(
                     {
                         "Version": "2012-10-17",
@@ -128,6 +132,7 @@ class FrontendPreviewEnvironment:
                                 "Condition": {
                                     "StringEquals": {
                                         "AWS:SourceArn": args[1],
+                                        "AWS:SourceAccount": args[2],
                                     }
                                 },
                             }
