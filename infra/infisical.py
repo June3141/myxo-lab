@@ -3,6 +3,7 @@
 Defines an ECS Fargate service running the Infisical secrets manager.
 Uses the existing ECS cluster from ecs.py.  Actual secret values
 (MONGO_URL, ENCRYPTION_KEY, etc.) come from Pulumi config, never hardcoded.
+Secrets are stored in SSM Parameter Store and injected via the ECS secrets field.
 
 Ref: https://infisical.com/docs/self-hosting/deployments/aws
 """
@@ -17,6 +18,7 @@ import pulumi_aws as aws
 # Configuration
 # ---------------------------------------------------------------------------
 config = pulumi.Config("infisical")
+vpc_config = pulumi.Config("vpc")
 
 # Sensitive values from Pulumi encrypted config
 mongo_url = config.require_secret("MONGO_URL")
@@ -24,11 +26,45 @@ encryption_key = config.require_secret("ENCRYPTION_KEY")
 auth_secret = config.require_secret("AUTH_SECRET")
 site_url = config.get("SITE_URL") or "https://infisical.internal"
 
+# Network configuration from Pulumi config
+vpc_id = vpc_config.require("id")
+subnet_ids: list[str] = vpc_config.require_object("private_subnet_ids")
+ingress_cidr_blocks: list[str] = config.get_object("ingress_cidr_blocks") or [
+    vpc_config.require("cidr_block"),
+]
+
 _COST_TAGS = {
     "Project": "myxo-lab",
     "Environment": pulumi.get_stack(),
     "CostCenter": "secrets-management",
 }
+
+# ---------------------------------------------------------------------------
+# SSM Parameter Store — secrets for ECS container
+# ---------------------------------------------------------------------------
+ssm_mongo_url = aws.ssm.Parameter(
+    "infisical-ssm-mongo-url",
+    name="/infisical/MONGO_URL",
+    type="SecureString",
+    value=mongo_url,
+    tags=_COST_TAGS,
+)
+
+ssm_encryption_key = aws.ssm.Parameter(
+    "infisical-ssm-encryption-key",
+    name="/infisical/ENCRYPTION_KEY",
+    type="SecureString",
+    value=encryption_key,
+    tags=_COST_TAGS,
+)
+
+ssm_auth_secret = aws.ssm.Parameter(
+    "infisical-ssm-auth-secret",
+    name="/infisical/AUTH_SECRET",
+    type="SecureString",
+    value=auth_secret,
+    tags=_COST_TAGS,
+)
 
 # ---------------------------------------------------------------------------
 # CloudWatch Log Group
@@ -41,19 +77,20 @@ log_group = aws.cloudwatch.LogGroup(
 )
 
 # ---------------------------------------------------------------------------
-# Security Group — allow inbound 443 (HTTPS)
+# Security Group — allow inbound 443 (HTTPS) from configurable CIDR
 # ---------------------------------------------------------------------------
 infisical_sg = aws.ec2.SecurityGroup(
     "infisical-sg",
     name="infisical-sg",
     description="Allow inbound HTTPS traffic to Infisical",
+    vpc_id=vpc_id,
     ingress=[
         aws.ec2.SecurityGroupIngressArgs(
             protocol="tcp",
             from_port=443,
             to_port=443,
-            cidr_blocks=["0.0.0.0/0"],
-            description="HTTPS inbound",
+            cidr_blocks=ingress_cidr_blocks,
+            description="HTTPS inbound from VPC CIDR",
         ),
     ],
     egress=[
@@ -76,15 +113,15 @@ _region = aws_config.require("region")
 
 container_definitions = pulumi.Output.all(
     log_group.name,
-    mongo_url,
-    encryption_key,
-    auth_secret,
+    ssm_mongo_url.arn,
+    ssm_encryption_key.arn,
+    ssm_auth_secret.arn,
 ).apply(
     lambda args: json.dumps(
         [
             {
                 "name": "infisical",
-                "image": "infisical/infisical:latest",
+                "image": "infisical/infisical:v0.91.0",
                 "cpu": 512,
                 "memory": 1024,
                 "essential": True,
@@ -95,11 +132,13 @@ container_definitions = pulumi.Output.all(
                     }
                 ],
                 "environment": [
-                    {"name": "MONGO_URL", "value": args[1]},
-                    {"name": "ENCRYPTION_KEY", "value": args[2]},
-                    {"name": "AUTH_SECRET", "value": args[3]},
                     {"name": "SITE_URL", "value": site_url},
                     {"name": "NODE_ENV", "value": "production"},
+                ],
+                "secrets": [
+                    {"name": "MONGO_URL", "valueFrom": args[1]},
+                    {"name": "ENCRYPTION_KEY", "valueFrom": args[2]},
+                    {"name": "AUTH_SECRET", "valueFrom": args[3]},
                 ],
                 "logConfiguration": {
                     "logDriver": "awslogs",
@@ -140,8 +179,7 @@ infisical_service = aws.ecs.Service(
     network_configuration=aws.ecs.ServiceNetworkConfigurationArgs(
         assign_public_ip=False,
         security_groups=[infisical_sg.id],
-        # TODO(#86): Add subnet IDs once VPC resources are available
-        subnets=[],
+        subnets=subnet_ids,
     ),
     tags=_COST_TAGS,
 )
