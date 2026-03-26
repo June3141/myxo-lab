@@ -3,6 +3,7 @@
 import secrets
 
 import cleanup
+import common
 import ecs
 import frontend_preview
 import github_app
@@ -16,6 +17,7 @@ import stale_cleanup
 # Pulumi registers resources on import — list modules explicitly for ruff F401
 __all__ = [
     "cleanup",
+    "common",
     "ecs",
     "frontend_preview",
     "github_app",

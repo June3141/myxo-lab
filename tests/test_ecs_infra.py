@@ -45,7 +45,7 @@ def test_defines_task_definition():
 def test_defines_iam_roles():
     """ecs.py must define IAM roles for task execution and task."""
     src = _ecs_source()
-    assert "iam.Role(" in src, "ecs.py must define iam.Role"
+    assert "iam.Role(" in src or "common.ECS_TASK_ASSUME_ROLE_POLICY" in src, "ecs.py must define iam.Role"
     assert "task_execution_role" in src or "task-execution-role" in src
     assert "task_role" in src or "task-role" in src
 
@@ -53,7 +53,7 @@ def test_defines_iam_roles():
 def test_defines_cloudwatch_log_group():
     """ecs.py must define a CloudWatch Log Group."""
     src = _ecs_source()
-    assert "cloudwatch.LogGroup(" in src, "ecs.py must define cloudwatch.LogGroup"
+    assert "cloudwatch.LogGroup(" in src or "common.create_log_group(" in src, "ecs.py must define cloudwatch.LogGroup"
 
 
 def test_no_pseudopod_references():

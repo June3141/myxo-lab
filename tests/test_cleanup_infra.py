@@ -38,13 +38,14 @@ def test_defines_lambda_function():
 def test_defines_iam_role():
     """cleanup.py must define an IAM Role for Lambda execution."""
     src = _cleanup_source()
-    assert "iam.Role(" in src, "cleanup.py must define iam.Role"
+    assert "iam.Role(" in src or "common.create_lambda_role(" in src, "cleanup.py must define iam.Role"
 
 
 def test_defines_cloudwatch_log_group():
     """cleanup.py must define a CloudWatch Log Group for Lambda logs."""
     src = _cleanup_source()
-    assert "cloudwatch.LogGroup(" in src, "cleanup.py must define cloudwatch.LogGroup"
+    has_log_group = "cloudwatch.LogGroup(" in src or "common.create_log_group(" in src
+    assert has_log_group, "cleanup.py must define cloudwatch.LogGroup"
 
 
 def test_defines_eventbridge_rule():

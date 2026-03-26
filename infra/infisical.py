@@ -10,6 +10,7 @@ Ref: https://infisical.com/docs/self-hosting/deployments/aws
 
 import json
 
+import common
 import ecs as ecs_infra
 import pulumi
 import pulumi_aws as aws
@@ -69,10 +70,9 @@ ssm_auth_secret = aws.ssm.Parameter(
 # ---------------------------------------------------------------------------
 # CloudWatch Log Group
 # ---------------------------------------------------------------------------
-log_group = aws.cloudwatch.LogGroup(
+log_group = common.create_log_group(
     "infisical-log-group",
-    name="/ecs/infisical",
-    retention_in_days=14,
+    "/ecs/infisical",
     tags=_COST_TAGS,
 )
 
