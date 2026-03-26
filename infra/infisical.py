@@ -44,7 +44,7 @@ _COST_TAGS = {
 # ---------------------------------------------------------------------------
 ssm_mongo_url = aws.ssm.Parameter(
     "infisical-ssm-mongo-url",
-    name="/infisical/MONGO_URL",
+    name=f"/infisical/{pulumi.get_stack()}/MONGO_URL",
     type="SecureString",
     value=mongo_url,
     tags=_COST_TAGS,
@@ -52,7 +52,7 @@ ssm_mongo_url = aws.ssm.Parameter(
 
 ssm_encryption_key = aws.ssm.Parameter(
     "infisical-ssm-encryption-key",
-    name="/infisical/ENCRYPTION_KEY",
+    name=f"/infisical/{pulumi.get_stack()}/ENCRYPTION_KEY",
     type="SecureString",
     value=encryption_key,
     tags=_COST_TAGS,
@@ -60,7 +60,7 @@ ssm_encryption_key = aws.ssm.Parameter(
 
 ssm_auth_secret = aws.ssm.Parameter(
     "infisical-ssm-auth-secret",
-    name="/infisical/AUTH_SECRET",
+    name=f"/infisical/{pulumi.get_stack()}/AUTH_SECRET",
     type="SecureString",
     value=auth_secret,
     tags=_COST_TAGS,
@@ -90,7 +90,7 @@ infisical_sg = aws.ec2.SecurityGroup(
             from_port=443,
             to_port=443,
             cidr_blocks=ingress_cidr_blocks,
-            description="HTTPS inbound from VPC CIDR",
+            description="HTTPS inbound from configured CIDR",
         ),
     ],
     egress=[

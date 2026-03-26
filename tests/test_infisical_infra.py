@@ -89,10 +89,10 @@ def test_infisical_naming():
 # ---------------------------------------------------------------------------
 
 
-def test_contains_mongo_url_env_var():
-    """Container definition must reference MONGO_URL environment variable."""
+def test_contains_mongo_url_secret():
+    """Container definition must reference MONGO_URL via SSM secrets."""
     src = _infisical_source()
-    assert "MONGO_URL" in src, "Container definition must include MONGO_URL environment variable"
+    assert "MONGO_URL" in src, "Container definition must include MONGO_URL secret"
 
 
 # ---------------------------------------------------------------------------
