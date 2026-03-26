@@ -17,9 +17,7 @@ def test_app_token_workflows_use_generate_step():
     """Workflows needing elevated permissions must generate an App token."""
     for wf_name in APP_TOKEN_WORKFLOWS:
         content = (WORKFLOWS_DIR / wf_name).read_text()
-        assert "create-github-app-token" in content, (
-            f"{wf_name} must use create-github-app-token action"
-        )
+        assert "create-github-app-token" in content, f"{wf_name} must use create-github-app-token action"
 
 
 def test_app_token_action_is_sha_pinned():
@@ -51,6 +49,4 @@ def test_gh_token_uses_app_token_output():
     """GH_TOKEN must be sourced from steps.app-token.outputs.token."""
     for wf_name in APP_TOKEN_WORKFLOWS:
         content = (WORKFLOWS_DIR / wf_name).read_text()
-        assert "steps.app-token.outputs.token" in content, (
-            f"{wf_name} GH_TOKEN must use steps.app-token.outputs.token"
-        )
+        assert "steps.app-token.outputs.token" in content, f"{wf_name} GH_TOKEN must use steps.app-token.outputs.token"
