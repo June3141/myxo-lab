@@ -89,10 +89,73 @@ def test_infisical_naming():
 # ---------------------------------------------------------------------------
 
 
-def test_contains_mongo_url_env_var():
-    """Container definition must reference MONGO_URL environment variable."""
+def test_contains_mongo_url_secret():
+    """Container definition must reference MONGO_URL via SSM secrets."""
     src = _infisical_source()
-    assert "MONGO_URL" in src, "Container definition must include MONGO_URL environment variable"
+    assert "MONGO_URL" in src, "Container definition must include MONGO_URL secret"
+
+
+# ---------------------------------------------------------------------------
+# Hardening: subnet IDs from Pulumi config (#242)
+# ---------------------------------------------------------------------------
+
+
+def test_subnets_from_config():
+    """network_configuration.subnets must use values from Pulumi config, not an empty list."""
+    src = _infisical_source()
+    # Must read subnet IDs from a Pulumi Config (e.g. config.require_object or config.require)
+    assert "subnet" in src.lower(), "Must reference subnet configuration"
+    # Must NOT have an empty subnets=[]
+    assert "subnets=[]" not in src, "subnets must not be an empty list"
+
+
+# ---------------------------------------------------------------------------
+# Hardening: SecurityGroup vpc_id (#242)
+# ---------------------------------------------------------------------------
+
+
+def test_security_group_has_vpc_id():
+    """SecurityGroup must have vpc_id explicitly set from Pulumi config."""
+    src = _infisical_source()
+    assert "vpc_id" in src, "SecurityGroup must have vpc_id explicitly set"
+
+
+# ---------------------------------------------------------------------------
+# Hardening: Ingress CIDR restriction (#242)
+# ---------------------------------------------------------------------------
+
+
+def test_ingress_not_open_to_world():
+    """Ingress must NOT use 0.0.0.0/0; should use a configurable CIDR."""
+    src = _infisical_source()
+    assert "0.0.0.0/0" not in src.split("ingress")[1].split("egress")[0], "Ingress CIDR must not be 0.0.0.0/0"
+
+
+# ---------------------------------------------------------------------------
+# Hardening: Secrets via SSM Parameter Store (#242)
+# ---------------------------------------------------------------------------
+
+
+def test_secrets_use_ssm_parameter_store():
+    """Sensitive env vars must use SSM Parameter Store via ECS secrets field."""
+    src = _infisical_source()
+    # Must create SSM Parameters for secrets
+    assert "ssm.Parameter(" in src, "Must define SSM Parameters for secrets"
+    # Container definition must use 'secrets' field, not plain 'environment' for sensitive values
+    assert '"secrets"' in src, "Container definition must use ECS secrets field for sensitive values"
+    assert '"valueFrom"' in src, "Secrets must use valueFrom to reference SSM parameters"
+
+
+# ---------------------------------------------------------------------------
+# Hardening: Pinned Docker image version (#242)
+# ---------------------------------------------------------------------------
+
+
+def test_docker_image_pinned():
+    """Docker image must be pinned to a specific version, not :latest."""
+    src = _infisical_source()
+    assert "infisical/infisical:latest" not in src, "Docker image must not use :latest tag"
+    assert "infisical/infisical:v0.91.0" in src, "Docker image must be pinned to v0.91.0"
 
 
 # ---------------------------------------------------------------------------
