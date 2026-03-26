@@ -1,0 +1,75 @@
+name: Petri Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: petri-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  preview-deploy:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: uv sync
+
+      - name: Deploy preview environment
+        working-directory: infra
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+        run: |
+          echo "Deploying preview environment for PR #${PR_NUMBER}"
+          # pulumi stack select "preview-pr-${PR_NUMBER}" --create
+          # pulumi config set preview:pr_number "${PR_NUMBER}"
+          # pulumi up --yes
+
+      - name: Comment preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh pr comment "${PR_NUMBER}" --repo "${REPO}" \
+            --body "Preview environment deployed for PR #${PR_NUMBER}."
+
+  preview-cleanup:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: uv sync
+
+      - name: Destroy preview environment
+        working-directory: infra
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+        run: |
+          echo "Destroying preview environment for PR #${PR_NUMBER}"
+          # pulumi stack select "preview-pr-${PR_NUMBER}"
+          # pulumi destroy --yes
+          # pulumi stack rm "preview-pr-${PR_NUMBER}" --yes
