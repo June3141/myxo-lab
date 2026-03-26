@@ -2,19 +2,9 @@
 
 from pathlib import Path
 
-import yaml
+from helpers import get_on_block, is_sha_pinned, load_workflow
 
 WORKFLOW_PATH = Path(__file__).parent.parent / ".github" / "workflows" / "container-build.yml"
-
-
-def _load_workflow() -> dict:
-    """Load workflow YAML, handling 'on' key parsed as boolean True."""
-    return yaml.safe_load(WORKFLOW_PATH.read_text())
-
-
-def _get_on_block(data: dict) -> dict:
-    """Get the 'on' trigger block (YAML parses bare 'on' as True)."""
-    return data.get(True, data.get("on", {}))
 
 
 def test_workflow_file_exists():
@@ -22,14 +12,14 @@ def test_workflow_file_exists():
 
 
 def test_workflow_is_valid_yaml():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     assert isinstance(data, dict), "Workflow must be a valid YAML mapping"
 
 
 def test_pr_trigger_excludes_rust_paths():
     """PR trigger should include container/** but exclude Rust paths (verified by rust.yml)."""
-    data = _load_workflow()
-    on_block = _get_on_block(data)
+    data = load_workflow(WORKFLOW_PATH)
+    on_block = get_on_block(data)
     pr_trigger = on_block.get("pull_request", {})
     paths = pr_trigger.get("paths", [])
     assert "container/**" in paths, "Must filter on container/** path"
@@ -40,16 +30,16 @@ def test_pr_trigger_excludes_rust_paths():
 
 def test_push_to_main_triggers_build():
     """Push to main should trigger container build for full verification."""
-    data = _load_workflow()
-    on_block = _get_on_block(data)
+    data = load_workflow(WORKFLOW_PATH)
+    on_block = get_on_block(data)
     push_trigger = on_block.get("push", {})
     branches = push_trigger.get("branches", [])
     assert "main" in branches, "Must trigger on push to main"
 
 
 def test_pull_request_trigger_types():
-    data = _load_workflow()
-    on_block = _get_on_block(data)
+    data = load_workflow(WORKFLOW_PATH)
+    on_block = get_on_block(data)
     pr_trigger = on_block["pull_request"]
     types = pr_trigger.get("types", [])
     assert "opened" in types
@@ -58,15 +48,15 @@ def test_pull_request_trigger_types():
 
 
 def test_has_permissions_block():
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
+    data = load_workflow(WORKFLOW_PATH)
     permissions = data.get("permissions", {})
     assert "contents" in permissions, "Must declare contents permission"
     assert permissions["contents"] == "read"
 
 
 def test_builds_docker_image():
-    """Build step must exist — either as a run command or a docker/build-push-action."""
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
+    """Build step must exist -- either as a run command or a docker/build-push-action."""
+    data = load_workflow(WORKFLOW_PATH)
     run_steps = []
     uses_steps = []
     for job in data.get("jobs", {}).values():
@@ -82,7 +72,7 @@ def test_builds_docker_image():
 
 def test_no_expression_interpolation_in_run_blocks():
     """Ensure no ${{ }} expressions appear in run: blocks (security best practice)."""
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
+    data = load_workflow(WORKFLOW_PATH)
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             if "run" in step:
@@ -92,15 +82,12 @@ def test_no_expression_interpolation_in_run_blocks():
 
 
 def test_uses_actions_checkout_sha_pinned():
-    import re
-
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
+    data = load_workflow(WORKFLOW_PATH)
     checkout_found = False
     for job in data.get("jobs", {}).values():
         for step in job.get("steps", []):
             uses = step.get("uses", "")
             if "actions/checkout" in uses:
-                _, _, ref = uses.partition("@")
-                assert re.fullmatch(r"[0-9a-f]{40}", ref), f"actions/checkout must be SHA-pinned, got: {uses}"
+                assert is_sha_pinned(uses), f"actions/checkout must be SHA-pinned, got: {uses}"
                 checkout_found = True
     assert checkout_found, "Must use actions/checkout"

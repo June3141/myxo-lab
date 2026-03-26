@@ -3,20 +3,9 @@
 import re
 from pathlib import Path
 
-import yaml
+from helpers import get_on_block, load_workflow
 
 WORKFLOW_PATH = Path(__file__).resolve().parent.parent / ".github" / "workflows" / "petri-preview.yml"
-
-
-def _load_workflow() -> dict:
-    assert WORKFLOW_PATH.is_file(), "petri-preview.yml must exist"
-    data = yaml.safe_load(WORKFLOW_PATH.read_text())
-    assert isinstance(data, dict)
-    return data
-
-
-def _get_on_block(data: dict) -> dict:
-    return data.get(True, data.get("on", {}))
 
 
 def test_workflow_exists():
@@ -24,8 +13,8 @@ def test_workflow_exists():
 
 
 def test_triggers_on_pr_open_and_close():
-    data = _load_workflow()
-    on_block = _get_on_block(data)
+    data = load_workflow(WORKFLOW_PATH)
+    on_block = get_on_block(data)
     pr = on_block.get("pull_request", {})
     types = pr.get("types", [])
     assert "opened" in types, "Must trigger on PR opened"
@@ -34,19 +23,19 @@ def test_triggers_on_pr_open_and_close():
 
 
 def test_has_deploy_job():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     jobs = data.get("jobs", {})
     assert "deploy" in jobs or "preview-deploy" in jobs, "Must have a deploy job"
 
 
 def test_has_cleanup_job():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     jobs = data.get("jobs", {})
     assert "cleanup" in jobs or "preview-cleanup" in jobs, "Must have a cleanup job"
 
 
 def test_cleanup_runs_on_pr_close():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     jobs = data.get("jobs", {})
     cleanup_job = jobs.get("cleanup") or jobs.get("preview-cleanup")
     assert cleanup_job is not None
@@ -62,7 +51,7 @@ def test_uses_pr_number_for_naming():
 
 
 def test_has_permissions():
-    data = _load_workflow()
+    data = load_workflow(WORKFLOW_PATH)
     assert "permissions" in data
 
 
