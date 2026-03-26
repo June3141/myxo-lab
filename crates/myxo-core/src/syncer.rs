@@ -28,46 +28,29 @@ pub trait Converter {
     }
 }
 
-pub struct ClaudeConverter;
-pub struct CodexConverter;
-pub struct CursorConverter;
-pub struct WindsurfConverter;
-
-impl Converter for ClaudeConverter {
-    fn name(&self) -> &str {
-        "claude"
-    }
-    fn output_path(&self, root: &Path) -> PathBuf {
-        root.join("CLAUDE.md")
-    }
+macro_rules! define_converter {
+    ($name:ident, $target:expr, $path:expr) => {
+        pub struct $name;
+        impl Converter for $name {
+            fn name(&self) -> &str {
+                $target
+            }
+            fn output_path(&self, root: &Path) -> PathBuf {
+                ($path)(root)
+            }
+        }
+    };
 }
 
-impl Converter for CodexConverter {
-    fn name(&self) -> &str {
-        "codex"
-    }
-    fn output_path(&self, root: &Path) -> PathBuf {
-        root.join("AGENTS.md")
-    }
-}
-
-impl Converter for CursorConverter {
-    fn name(&self) -> &str {
-        "cursor"
-    }
-    fn output_path(&self, root: &Path) -> PathBuf {
-        root.join(".cursor").join("rules")
-    }
-}
-
-impl Converter for WindsurfConverter {
-    fn name(&self) -> &str {
-        "windsurf"
-    }
-    fn output_path(&self, root: &Path) -> PathBuf {
-        root.join(".windsurfrules")
-    }
-}
+define_converter!(ClaudeConverter, "claude", |root: &Path| root
+    .join("CLAUDE.md"));
+define_converter!(CodexConverter, "codex", |root: &Path| root
+    .join("AGENTS.md"));
+define_converter!(CursorConverter, "cursor", |root: &Path| root
+    .join(".cursor")
+    .join("rules"));
+define_converter!(WindsurfConverter, "windsurf", |root: &Path| root
+    .join(".windsurfrules"));
 
 fn converters() -> Vec<Box<dyn Converter>> {
     vec![
