@@ -5,6 +5,8 @@ frontend preview before merge.  Uses Origin Access Control (OAC) for secure
 S3 access.
 """
 
+import json
+
 import pulumi
 import pulumi_aws as aws
 
@@ -28,13 +30,28 @@ class FrontendPreviewEnvironment:
     """
 
     def __init__(self, pr_number: int) -> None:
-        name = f"myxo-fe-preview-pr-{pr_number}"
+        stack = pulumi.get_stack()
+        name = f"myxo-fe-preview-{stack}-pr-{pr_number}"
 
         # --- S3 Bucket --------------------------------------------------------
         self.bucket = aws.s3.BucketV2(
             f"{name}-bucket",
             bucket=name,
+            force_destroy=True,
             tags={"Name": name, "PR": str(pr_number)},
+        )
+
+        # --- S3 Default Encryption (SSE-S3) -----------------------------------
+        aws.s3.BucketServerSideEncryptionConfigurationV2(
+            f"{name}-encryption",
+            bucket=self.bucket.id,
+            rules=[
+                aws.s3.BucketServerSideEncryptionConfigurationV2RuleArgs(
+                    apply_server_side_encryption_by_default=aws.s3.BucketServerSideEncryptionConfigurationV2RuleApplyServerSideEncryptionByDefaultArgs(
+                        sse_algorithm="AES256",
+                    ),
+                ),
+            ],
         )
 
         # Block all public access — CloudFront uses OAC
@@ -88,6 +105,7 @@ class FrontendPreviewEnvironment:
             viewer_certificate=aws.cloudfront.DistributionViewerCertificateArgs(
                 cloudfront_default_certificate=True,
             ),
+            price_class="PriceClass_100",
             comment=f"Frontend preview for PR #{pr_number}",
             tags={"Name": name, "PR": str(pr_number)},
         )
@@ -97,26 +115,24 @@ class FrontendPreviewEnvironment:
             f"{name}-bucket-policy",
             bucket=self.bucket.id,
             policy=pulumi.Output.all(self.bucket.arn, self.distribution.arn).apply(
-                lambda args: (
-                    f"""{{
-  "Version": "2012-10-17",
-  "Statement": [
-    {{
-      "Sid": "AllowCloudFrontServicePrincipal",
-      "Effect": "Allow",
-      "Principal": {{
-        "Service": "cloudfront.amazonaws.com"
-      }},
-      "Action": "s3:GetObject",
-      "Resource": "{args[0]}/*",
-      "Condition": {{
-        "StringEquals": {{
-          "AWS:SourceArn": "{args[1]}"
-        }}
-      }}
-    }}
-  ]
-}}"""
+                lambda args: json.dumps(
+                    {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                            {
+                                "Sid": "AllowCloudFrontServicePrincipal",
+                                "Effect": "Allow",
+                                "Principal": {"Service": "cloudfront.amazonaws.com"},
+                                "Action": "s3:GetObject",
+                                "Resource": f"{args[0]}/*",
+                                "Condition": {
+                                    "StringEquals": {
+                                        "AWS:SourceArn": args[1],
+                                    }
+                                },
+                            }
+                        ],
+                    }
                 )
             ),
         )
@@ -130,4 +146,5 @@ class FrontendPreviewEnvironment:
 if pr_number:
     preview = FrontendPreviewEnvironment(pr_number)
 
-    pulumi.export("frontend_preview_domain", preview.domain_name)
+    pulumi.export("frontend_preview_bucket_name", preview.bucket.bucket)
+    pulumi.export("frontend_preview_cdn_domain", preview.domain_name)
