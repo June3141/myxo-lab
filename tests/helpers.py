@@ -16,7 +16,7 @@ WORKFLOWS_DIR = ROOT / ".github" / "workflows"
 def load_workflow(path: Path) -> dict:
     """Load workflow YAML and return parsed dict.
 
-    *path* should be an absolute ``Path`` to a workflow YAML file.
+    *path* can be absolute or relative to the project root.
     """
     data = yaml.safe_load(path.read_text())
     assert isinstance(data, dict), "Workflow YAML must be a valid mapping"
@@ -41,16 +41,20 @@ def is_sha_pinned(ref: str) -> bool:
 def load_handler(handler_dir: str | Path) -> object:
     """Dynamically import ``handler`` module from *handler_dir*.
 
-    The directory is temporarily prepended to ``sys.path`` and cleaned up
-    after import.
+    Uses ``importlib.util.spec_from_file_location`` with a unique module name
+    to avoid conflicts between different handler directories.
     """
-    handler_dir = str(handler_dir)
-    original_path = sys.path.copy()
-    try:
-        if handler_dir not in sys.path:
-            sys.path.insert(0, handler_dir)
-        if "handler" in sys.modules:
-            return importlib.reload(sys.modules["handler"])
-        return importlib.import_module("handler")
-    finally:
-        sys.path[:] = original_path
+    handler_dir = Path(handler_dir)
+    handler_file = handler_dir / "handler.py"
+    module_name = f"handler_{handler_dir.name}"
+
+    # Remove stale entry if exists
+    if module_name in sys.modules:
+        del sys.modules[module_name]
+
+    spec = importlib.util.spec_from_file_location(module_name, handler_file)
+    assert spec is not None and spec.loader is not None, f"Cannot load handler from {handler_file}"
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
