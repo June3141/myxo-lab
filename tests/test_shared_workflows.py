@@ -83,7 +83,7 @@ def test_test_job_runs_pytest_with_markers():
 
 SHA_PINNED_ACTIONS = [
     pytest.param("actions/checkout", id="checkout"),
-    pytest.param("setup-uv", id="setup-uv"),
+    pytest.param("astral-sh/setup-uv", id="setup-uv"),
 ]
 
 
