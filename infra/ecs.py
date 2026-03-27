@@ -10,6 +10,7 @@ Defines minimal ECS infrastructure:
 
 import json
 
+import common
 import pulumi
 import pulumi_aws as aws
 
@@ -30,11 +31,7 @@ iam = aws.iam
 cloudwatch = aws.cloudwatch
 
 # --- CloudWatch Log Group ----------------------------------------------------
-log_group = cloudwatch.LogGroup(
-    "myxo-log-group",
-    name="/ecs/myxo",
-    retention_in_days=14,
-)
+log_group = common.create_log_group("myxo-log-group", "/ecs/myxo")
 
 # --- ECR Repository ----------------------------------------------------------
 repo = ecr.Repository(
@@ -59,18 +56,7 @@ cluster = ecs.Cluster(
 task_execution_role = iam.Role(
     "myxo-task-execution-role",
     name="myxo-task-execution-role",
-    assume_role_policy=json.dumps(
-        {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {"Service": "ecs-tasks.amazonaws.com"},
-                    "Action": "sts:AssumeRole",
-                }
-            ],
-        }
-    ),
+    assume_role_policy=common.ECS_TASK_ASSUME_ROLE_POLICY,
 )
 
 iam.RolePolicyAttachment(
@@ -83,18 +69,7 @@ iam.RolePolicyAttachment(
 task_role = iam.Role(
     "myxo-task-role",
     name="myxo-task-role",
-    assume_role_policy=json.dumps(
-        {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {"Service": "ecs-tasks.amazonaws.com"},
-                    "Action": "sts:AssumeRole",
-                }
-            ],
-        }
-    ),
+    assume_role_policy=common.ECS_TASK_ASSUME_ROLE_POLICY,
 )
 
 # EFS client permissions for task role

@@ -13,33 +13,15 @@ Resources:
 
 import json
 
+import common
 import pulumi
 import pulumi_aws as aws
 
 # --- IAM Role for Lambda ---------------------------------------------------
-cleanup_role = aws.iam.Role(
-    "myxo-stale-cleanup-role",
-    name="myxo-stale-cleanup-role",
-    assume_role_policy=json.dumps(
-        {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {"Service": "lambda.amazonaws.com"},
-                    "Action": "sts:AssumeRole",
-                }
-            ],
-        }
-    ),
-)
+cleanup_role = common.create_lambda_role("myxo-stale-cleanup")
 
 # Basic Lambda execution (CloudWatch Logs)
-aws.iam.RolePolicyAttachment(
-    "myxo-stale-cleanup-basic-exec",
-    role=cleanup_role.name,
-    policy_arn="arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-)
+common.attach_basic_execution_role("myxo-stale-cleanup", cleanup_role)
 
 # Inline policy for ECS + EC2 describe/delete with AutoDelete tag
 aws.iam.RolePolicy(
@@ -80,10 +62,9 @@ aws.iam.RolePolicy(
 )
 
 # --- CloudWatch Log Group --------------------------------------------------
-cleanup_log_group = aws.cloudwatch.LogGroup(
+cleanup_log_group = common.create_log_group(
     "myxo-stale-cleanup-logs",
-    name="/aws/lambda/myxo-stale-cleanup",
-    retention_in_days=14,
+    "/aws/lambda/myxo-stale-cleanup",
 )
 
 # --- Lambda Function -------------------------------------------------------
@@ -114,13 +95,7 @@ aws.cloudwatch.EventTarget(
 )
 
 # --- Lambda Permission for EventBridge ------------------------------------
-aws.lambda_.Permission(
-    "myxo-stale-cleanup-invoke",
-    action="lambda:InvokeFunction",
-    function=cleanup_function.name,
-    principal="events.amazonaws.com",
-    source_arn=schedule_rule.arn,
-)
+common.create_eventbridge_lambda_permission("myxo-stale-cleanup", cleanup_function, schedule_rule)
 
 # --- Exports ---------------------------------------------------------------
 pulumi.export("stale_cleanup_function_arn", cleanup_function.arn)

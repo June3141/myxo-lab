@@ -10,6 +10,7 @@ when a pull request is closed:
 
 import json
 
+import common
 import pulumi
 import pulumi_aws as aws
 
@@ -17,36 +18,16 @@ iam = aws.iam
 cloudwatch = aws.cloudwatch
 
 # --- CloudWatch Log Group for Lambda ----------------------------------------
-cleanup_log_group = cloudwatch.LogGroup(
+cleanup_log_group = common.create_log_group(
     "myxo-pr-cleanup-logs",
-    name="/aws/lambda/myxo-pr-cleanup",
-    retention_in_days=14,
+    "/aws/lambda/myxo-pr-cleanup",
 )
 
 # --- IAM Role for Lambda execution ------------------------------------------
-cleanup_role = iam.Role(
-    "myxo-pr-cleanup-role",
-    name="myxo-pr-cleanup-role",
-    assume_role_policy=json.dumps(
-        {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {"Service": "lambda.amazonaws.com"},
-                    "Action": "sts:AssumeRole",
-                }
-            ],
-        }
-    ),
-)
+cleanup_role = common.create_lambda_role("myxo-pr-cleanup")
 
 # CloudWatch Logs permissions
-iam.RolePolicyAttachment(
-    "myxo-pr-cleanup-logs-policy",
-    role=cleanup_role.name,
-    policy_arn="arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-)
+common.attach_basic_execution_role("myxo-pr-cleanup", cleanup_role)
 
 # ECS task stop permissions
 iam.RolePolicy(
@@ -104,13 +85,7 @@ cloudwatch.EventTarget(
 )
 
 # Allow EventBridge to invoke the Lambda
-aws.lambda_.Permission(
-    "myxo-pr-cleanup-eventbridge-permission",
-    action="lambda:InvokeFunction",
-    function=cleanup_lambda.name,
-    principal="events.amazonaws.com",
-    source_arn=pr_close_rule.arn,
-)
+common.create_eventbridge_lambda_permission("myxo-pr-cleanup", cleanup_lambda, pr_close_rule)
 
 # --- Exports ----------------------------------------------------------------
 pulumi.export("cleanup_lambda_arn", cleanup_lambda.arn)

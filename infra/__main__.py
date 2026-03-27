@@ -3,6 +3,7 @@
 import secrets
 
 import cleanup
+import common
 import ecs
 import frontend_preview
 import github_app
@@ -13,9 +14,10 @@ import pulumi
 import pulumi_github as github
 import stale_cleanup
 
-# Pulumi registers resources on import — list modules explicitly for ruff F401
+# List all infra modules for ruff F401 — resource modules register on import
 __all__ = [
     "cleanup",
+    "common",
     "ecs",
     "frontend_preview",
     "github_app",

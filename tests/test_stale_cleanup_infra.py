@@ -50,13 +50,14 @@ def test_defines_eventbridge_target():
 def test_defines_iam_role():
     """stale_cleanup.py must define an IAM role for the Lambda function."""
     src = _stale_cleanup_source()
-    assert "iam.Role(" in src, "stale_cleanup.py must define iam.Role"
+    assert "iam.Role(" in src or "common.create_lambda_role(" in src, "stale_cleanup.py must define iam.Role"
 
 
 def test_defines_cloudwatch_log_group():
     """stale_cleanup.py must define a CloudWatch Log Group for Lambda logs."""
     src = _stale_cleanup_source()
-    assert "cloudwatch.LogGroup(" in src, "stale_cleanup.py must define cloudwatch.LogGroup"
+    has_log_group = "cloudwatch.LogGroup(" in src or "common.create_log_group(" in src
+    assert has_log_group, "stale_cleanup.py must define cloudwatch.LogGroup"
 
 
 def test_myxo_naming():
