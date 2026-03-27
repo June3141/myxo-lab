@@ -25,7 +25,7 @@ nix_cache_ap = aws.efs.AccessPoint(
             permissions="755",
         ),
     ),
-    tags={"Name": "myxo-nix-cache-ap"},
+    tags={"Name": "myxo-nix-cache-ap", **_COST_TAGS},
 )
 
 # TODO(#137): Add EFS Mount Target once VPC/subnet resources are available.

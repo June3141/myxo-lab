@@ -15,11 +15,11 @@ ECS_PKG = INFRA_DIR / "ecs"
 
 def _ecs_source() -> str:
     """Return concatenated source of all files in the ecs package."""
-    return "".join(f.read_text() for f in sorted(ECS_PKG.glob("*.py")))
+    return "\n\n".join(f.read_text() for f in sorted(ECS_PKG.glob("*.py")))
 
 
 def _constants_source() -> str:
-    return (INFRA_DIR / "constants.py").read_text()
+    return (INFRA_DIR / "constants.py").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
