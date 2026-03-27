@@ -16,6 +16,10 @@ def _ecs_source() -> str:
     return (INFRA_DIR / "ecs.py").read_text()
 
 
+def _constants_source() -> str:
+    return (INFRA_DIR / "constants.py").read_text()
+
+
 # ---------------------------------------------------------------------------
 # Cost tags (#137)
 # ---------------------------------------------------------------------------
@@ -26,8 +30,12 @@ _REQUIRED_TAG_KEYS = ["Project", "Environment", "CostCenter"]
 def test_cluster_has_cost_tags():
     """ECS Cluster must have Project, Environment, CostCenter tags."""
     src = _ecs_source()
+    # ecs.py must reference a shared tags dict
+    assert "_COST_TAGS" in src or "cost_tags" in src, "ecs.py must reference cost tags"
+    # constants.py must define the required tag keys
+    constants_src = _constants_source()
     for key in _REQUIRED_TAG_KEYS:
-        assert f'"{key}"' in src, f"Cluster must have {key} tag"
+        assert f'"{key}"' in constants_src, f"constants.py must define {key} tag key"
 
 
 def test_task_definition_has_cost_tags():

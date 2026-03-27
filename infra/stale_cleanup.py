@@ -16,6 +16,7 @@ import json
 import common
 import pulumi
 import pulumi_aws as aws
+from constants import LOG_RETENTION_DAYS
 
 # --- IAM Role for Lambda ---------------------------------------------------
 cleanup_role = common.create_lambda_role("myxo-stale-cleanup")
@@ -65,6 +66,7 @@ aws.iam.RolePolicy(
 cleanup_log_group = common.create_log_group(
     "myxo-stale-cleanup-logs",
     "/aws/lambda/myxo-stale-cleanup",
+    retention_in_days=LOG_RETENTION_DAYS,
 )
 
 # --- Lambda Function -------------------------------------------------------

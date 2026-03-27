@@ -13,6 +13,7 @@ import json
 import common
 import pulumi
 import pulumi_aws as aws
+from constants import LOG_RETENTION_DAYS
 
 iam = aws.iam
 cloudwatch = aws.cloudwatch
@@ -21,6 +22,7 @@ cloudwatch = aws.cloudwatch
 cleanup_log_group = common.create_log_group(
     "myxo-pr-cleanup-logs",
     "/aws/lambda/myxo-pr-cleanup",
+    retention_in_days=LOG_RETENTION_DAYS,
 )
 
 # --- IAM Role for Lambda execution ------------------------------------------
