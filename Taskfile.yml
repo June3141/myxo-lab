@@ -53,6 +53,16 @@ tasks:
     desc: Run Rust tests with coverage
     cmd: cargo llvm-cov --workspace --fail-under-lines {{.COVERAGE_THRESHOLD}}
 
+  # ── Duplication ──
+  lint:dup:
+    desc: Detect code duplication with jscpd
+    cmd: npx jscpd .
+
+  # ── Security ──
+  security:iac:
+    desc: Run Checkov IaC policy scan
+    cmd: checkov --config-file .checkov.yaml
+
   # ── Aggregate ──
   lint:
     desc: Lint all (Python + Rust)
