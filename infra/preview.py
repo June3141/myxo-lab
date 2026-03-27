@@ -7,7 +7,7 @@ before merge.  Uses FARGATE_SPOT to keep costs around ~$1/day.
 import ecs
 import pulumi
 import pulumi_aws as aws
-from constants import PREVIEW_API_PORT
+from constants import PREVIEW_API_PORT, preview_tags
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -46,6 +46,7 @@ class PreviewEnvironment:
         vpc_id: pulumi.Input[str],
     ) -> None:
         name = f"myxo-preview-pr-{pr_number}"
+        _tags = preview_tags(cost_center="preview", pr_number=pr_number)
 
         # --- Security Group (allow inbound 8080) ----------------------------
         self.security_group = aws.ec2.SecurityGroup(
@@ -70,7 +71,7 @@ class PreviewEnvironment:
                     cidr_blocks=["0.0.0.0/0"],
                 ),
             ],
-            tags={"Name": name, "PR": str(pr_number)},
+            tags={"Name": name, **_tags},
         )
 
         # --- ECS Service (Fargate Spot, 1 task) -----------------------------
@@ -91,7 +92,7 @@ class PreviewEnvironment:
                 security_groups=[self.security_group.id],
                 assign_public_ip=True,
             ),
-            tags={"PR": str(pr_number)},
+            tags=_tags,
         )
 
         # --- Export info -------------------------------------------------------
