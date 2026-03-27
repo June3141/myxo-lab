@@ -1,0 +1,6 @@
+directory:
+  - infra/
+framework:
+  - python
+soft-fail: false
+compact: true

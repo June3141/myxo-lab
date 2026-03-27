@@ -24,18 +24,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
 
-  trivy-iac:
-    name: Trivy IaC scan
+  checkov:
+    name: Checkov IaC scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Scan IaC for misconfigurations
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.29
+      - name: Run Checkov IaC scan
+        uses: bridgecrewio/checkov-action@21379e1eb6a3c1df5765e67290d7c4f498baebab # v12
         with:
-          scan-type: config
-          scan-ref: infra/
-          format: table
-          exit-code: "1"
-          severity: HIGH,CRITICAL
+          config_file: .checkov.yaml
