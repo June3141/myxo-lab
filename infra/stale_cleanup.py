@@ -42,7 +42,7 @@ class StaleCleanupEnvironment:
         # Inline policy for ECS + EC2 describe/delete with AutoDelete tag
         aws.iam.RolePolicy(
             "myxo-stale-cleanup-policy",
-            role=self.role.id,
+            role=self.role.name,
             policy=json.dumps(
                 {
                     "Version": "2012-10-17",
