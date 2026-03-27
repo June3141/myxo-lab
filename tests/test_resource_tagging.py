@@ -173,9 +173,7 @@ class TestPreviewTags:
     def test_service_has_tags(self):
         """ECS Service must have tags= keyword argument."""
         src = _read_source("preview.py")
-        assert _find_keyword_call(src, "Service", "tags"), (
-            "preview.py ECS Service must have tags= argument"
-        )
+        assert _find_keyword_call(src, "Service", "tags"), "preview.py ECS Service must have tags= argument"
 
 
 # ===========================================================================
@@ -218,9 +216,7 @@ class TestCleanupTags:
 
     def test_lambda_has_tags(self):
         src = _read_source("cleanup.py")
-        assert _find_keyword_call(src, "Function", "tags"), (
-            "cleanup.py Lambda Function must have tags= argument"
-        )
+        assert _find_keyword_call(src, "Function", "tags"), "cleanup.py Lambda Function must have tags= argument"
 
 
 # ===========================================================================
@@ -238,6 +234,4 @@ class TestStaleCleanupTags:
 
     def test_lambda_has_tags(self):
         src = _read_source("stale_cleanup.py")
-        assert _find_keyword_call(src, "Function", "tags"), (
-            "stale_cleanup.py Lambda Function must have tags= argument"
-        )
+        assert _find_keyword_call(src, "Function", "tags"), "stale_cleanup.py Lambda Function must have tags= argument"
