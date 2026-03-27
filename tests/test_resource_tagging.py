@@ -89,7 +89,6 @@ class TestPreviewTags:
     def test_service_has_tags(self):
         """ECS Service tags must include cost tags (via _tags variable)."""
         src = _read_source("preview.py")
-        # Service should use tags derived from preview_tags
         assert "tags=_tags" in src or "tags={" in src
 
 
@@ -113,7 +112,6 @@ class TestFrontendPreviewTags:
     def test_distribution_has_tags(self):
         """CloudFront Distribution tags must include cost tags."""
         src = _read_source("frontend_preview.py")
-        # Both bucket and distribution should use _tags derived from preview_tags
         assert src.count("**_tags") >= 2
 
 
@@ -132,7 +130,6 @@ class TestCleanupTags:
 
     def test_lambda_has_tags(self):
         src = _read_source("cleanup.py")
-        # Lambda function should have tags= argument
         assert "tags=" in src
 
 
@@ -152,7 +149,6 @@ class TestStaleCleanupTags:
     def test_lambda_has_tags(self):
         src = _read_source("stale_cleanup.py")
         lines = src.split("\n")
-        # Find the Lambda Function resource and check it has tags
         in_lambda = False
         has_tags = False
         for line in lines:
