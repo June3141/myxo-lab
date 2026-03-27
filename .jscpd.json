@@ -1,0 +1,18 @@
+{
+  "threshold": 0,
+  "minLines": 5,
+  "minTokens": 50,
+  "reporters": ["console"],
+  "pattern": ["**/*.py", "**/*.yml", "**/*.yaml", "**/*.rs"],
+  "ignore": [
+    "**/.git/**",
+    "**/node_modules/**",
+    "**/target/**",
+    "**/__pycache__/**",
+    "**/.venv/**",
+    "**/uv.lock",
+    "**/.claude/**"
+  ],
+  "absolute": false,
+  "gitignore": true
+}
