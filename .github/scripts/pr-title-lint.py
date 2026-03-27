@@ -36,7 +36,7 @@ def validate(title: str) -> str | None:
     if len(title) > MAX_LENGTH:
         return f"Title exceeds {MAX_LENGTH} characters ({len(title)})"
     if not TITLE_RE.match(title):
-        return f"Title does not match format: <type>: <emoji> <subject>"
+        return "Title does not match format: <type>: <emoji> <subject>"
     return None
 
 
@@ -50,7 +50,7 @@ def main() -> int:
     if error:
         print(f"❌ {error}", file=sys.stderr)
         print(f"   Got: {title!r}", file=sys.stderr)
-        print(f"   Expected: <type>: <emoji> <subject>", file=sys.stderr)
+        print("   Expected: <type>: <emoji> <subject>", file=sys.stderr)
         return 1
 
     print(f"✅ Title OK: {title}")
