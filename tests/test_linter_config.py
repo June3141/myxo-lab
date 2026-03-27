@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,33 +29,21 @@ def _hook_ids(data: dict) -> list[str]:
     return ids
 
 
-# ── pre-commit hooks ──
+# ── pre-commit hooks (exact match) ──
+
+EXACT_HOOK_IDS = ["yamllint", "actionlint", "shellcheck", "typos"]
 
 
-def test_precommit_has_yamllint():
+@pytest.mark.parametrize("hook_id", EXACT_HOOK_IDS)
+def test_precommit_has_hook(hook_id: str):
     ids = _hook_ids(_load_precommit())
-    assert "yamllint" in ids
-
-
-def test_precommit_has_actionlint():
-    ids = _hook_ids(_load_precommit())
-    assert "actionlint" in ids
-
-
-def test_precommit_has_shellcheck():
-    ids = _hook_ids(_load_precommit())
-    assert "shellcheck" in ids
+    assert hook_id in ids
 
 
 def test_precommit_has_hadolint():
     ids = _hook_ids(_load_precommit())
     has_hadolint = "hadolint" in ids or "hadolint-docker" in ids
     assert has_hadolint
-
-
-def test_precommit_has_typos():
-    ids = _hook_ids(_load_precommit())
-    assert "typos" in ids
 
 
 def test_precommit_has_markdownlint():
@@ -65,21 +54,17 @@ def test_precommit_has_markdownlint():
 
 # ── config files ──
 
-
-def test_yamllint_config_exists():
-    assert YAMLLINT_PATH.is_file()
-
-
-def test_typos_config_exists():
-    assert TYPOS_PATH.is_file()
-
-
-def test_markdownlint_config_exists():
-    assert MARKDOWNLINT_PATH.is_file()
+CONFIG_FILES = [
+    pytest.param(YAMLLINT_PATH, id="yamllint"),
+    pytest.param(TYPOS_PATH, id="typos"),
+    pytest.param(MARKDOWNLINT_PATH, id="markdownlint"),
+    pytest.param(HADOLINT_PATH, id="hadolint"),
+]
 
 
-def test_hadolint_config_exists():
-    assert HADOLINT_PATH.is_file()
+@pytest.mark.parametrize("config_path", CONFIG_FILES)
+def test_config_file_exists(config_path: Path):
+    assert config_path.is_file()
 
 
 # ── CI workflows ──

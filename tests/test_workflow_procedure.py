@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import pytest
 import yaml
 
 WORKFLOW = Path(__file__).parent.parent / ".github" / "workflows" / "myxo-procedure.yml"
@@ -24,24 +25,13 @@ def test_triggers_on_issues_labeled():
     assert "labeled" in issues_config.get("types", []), "Workflow should trigger on labeled type"
 
 
-def test_references_myxo_ready_label():
+MYXO_LABELS = ["myxo-ready", "myxo-active", "myxo-complete", "myxo-abort"]
+
+
+@pytest.mark.parametrize("label", MYXO_LABELS)
+def test_references_myxo_label(label: str):
     content = WORKFLOW.read_text()
-    assert "state: myxo-ready" in content, "Workflow should reference the myxo-ready label"
-
-
-def test_references_myxo_active_label():
-    content = WORKFLOW.read_text()
-    assert "state: myxo-active" in content, "Workflow should reference the myxo-active label"
-
-
-def test_references_myxo_complete_label():
-    content = WORKFLOW.read_text()
-    assert "state: myxo-complete" in content, "Workflow should reference the myxo-complete label"
-
-
-def test_references_myxo_abort_label():
-    content = WORKFLOW.read_text()
-    assert "state: myxo-abort" in content, "Workflow should reference the myxo-abort label"
+    assert f"state: {label}" in content, f"Workflow should reference the {label} label"
 
 
 def test_uses_env_for_issue_data():

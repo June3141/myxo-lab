@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 SCRIPT = Path(__file__).parent.parent / ".github" / "scripts" / "pr-title-lint.py"
 
 
@@ -15,66 +17,33 @@ def _run(title: str) -> subprocess.CompletedProcess:
     )
 
 
-def test_valid_feat_title():
-    result = _run("feat: ✨ add hypothesis tracking endpoint")
+VALID_TITLES = [
+    pytest.param("feat: ✨ add hypothesis tracking endpoint", id="feat"),
+    pytest.param("fix: 🐛 resolve scheduling race condition", id="fix"),
+    pytest.param("chore: 🔧 add PR title validation", id="chore"),
+    pytest.param("test: ✅ add myxo execution tests", id="test"),
+    pytest.param("docs: 📝 update architecture diagram", id="docs"),
+    pytest.param("refactor: ♻️ extract experiment validation logic", id="refactor"),
+    pytest.param("feat: ✨ a", id="min-length-subject"),
+]
+
+INVALID_TITLES = [
+    pytest.param("feat: add something", id="missing-emoji"),
+    pytest.param("✨ add something", id="missing-type"),
+    pytest.param("feat: ✨ Add something", id="uppercase-subject"),
+    pytest.param("feat: ✨ add something.", id="trailing-period"),
+    pytest.param("feat: ✨ " + "a" * 70, id="too-long"),
+    pytest.param("", id="empty"),
+]
+
+
+@pytest.mark.parametrize("title", VALID_TITLES)
+def test_valid_title(title: str):
+    result = _run(title)
     assert result.returncode == 0
 
 
-def test_valid_fix_title():
-    result = _run("fix: 🐛 resolve scheduling race condition")
-    assert result.returncode == 0
-
-
-def test_valid_chore_title():
-    result = _run("chore: 🔧 add PR title validation")
-    assert result.returncode == 0
-
-
-def test_valid_test_title():
-    result = _run("test: ✅ add myxo execution tests")
-    assert result.returncode == 0
-
-
-def test_valid_docs_title():
-    result = _run("docs: 📝 update architecture diagram")
-    assert result.returncode == 0
-
-
-def test_valid_refactor_title():
-    result = _run("refactor: ♻️ extract experiment validation logic")
-    assert result.returncode == 0
-
-
-def test_valid_min_length_subject():
-    result = _run("feat: ✨ a")
-    assert result.returncode == 0
-
-
-def test_reject_missing_emoji():
-    result = _run("feat: add something")
-    assert result.returncode == 1
-
-
-def test_reject_missing_type():
-    result = _run("✨ add something")
-    assert result.returncode == 1
-
-
-def test_reject_uppercase_subject():
-    result = _run("feat: ✨ Add something")
-    assert result.returncode == 1
-
-
-def test_reject_trailing_period():
-    result = _run("feat: ✨ add something.")
-    assert result.returncode == 1
-
-
-def test_reject_too_long():
-    result = _run("feat: ✨ " + "a" * 70)
-    assert result.returncode == 1
-
-
-def test_reject_empty():
-    result = _run("")
+@pytest.mark.parametrize("title", INVALID_TITLES)
+def test_reject_invalid_title(title: str):
+    result = _run(title)
     assert result.returncode == 1

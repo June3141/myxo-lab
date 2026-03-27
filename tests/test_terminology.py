@@ -57,23 +57,14 @@ class TestDeprecatedAgentNames:
 class TestNewAgentNames:
     """Ensure the new 4-layer model agent names are present."""
 
-    @pytest.mark.small
-    def test_readme_has_microscope_role(self):
-        """Microscope should appear as a role in README."""
-        content = (ROOT / "README.md").read_text(encoding="utf-8")
-        assert "**Microscope**" in content
+    REQUIRED_ROLES = ["Microscope", "Recorder", "Fellow"]
 
     @pytest.mark.small
-    def test_readme_has_recorder_role(self):
-        """Recorder should appear as a role in README."""
+    @pytest.mark.parametrize("role", REQUIRED_ROLES)
+    def test_readme_has_role(self, role: str):
+        """Required role should appear as bold text in README."""
         content = (ROOT / "README.md").read_text(encoding="utf-8")
-        assert "**Recorder**" in content
-
-    @pytest.mark.small
-    def test_readme_has_fellow_role(self):
-        """Fellow should appear as a role in README."""
-        content = (ROOT / "README.md").read_text(encoding="utf-8")
-        assert "**Fellow**" in content
+        assert f"**{role}**" in content
 
     @pytest.mark.small
     def test_readme_protocol_still_exists_as_artifact(self):
@@ -88,26 +79,13 @@ class TestNewAgentNames:
 class TestFourLayerModel:
     """Ensure the 4-layer model is documented in README."""
 
-    @pytest.mark.small
-    def test_readme_has_person_layer(self):
-        content = (ROOT / "README.md").read_text(encoding="utf-8")
-        assert "Person" in content
+    LAYERS = ["Person", "Device", "Artifact", "Environment"]
 
     @pytest.mark.small
-    def test_readme_has_device_layer(self):
+    @pytest.mark.parametrize("layer", LAYERS)
+    def test_readme_has_layer(self, layer: str):
         content = (ROOT / "README.md").read_text(encoding="utf-8")
-        assert "Device" in content
-
-    @pytest.mark.small
-    def test_readme_has_artifact_layer(self):
-        content = (ROOT / "README.md").read_text(encoding="utf-8")
-        assert "Artifact" in content
-
-    @pytest.mark.small
-    def test_readme_has_environment_layer(self):
-        content = (ROOT / "README.md").read_text(encoding="utf-8")
-        # "Environment" already in the section header
-        assert "Environment" in content
+        assert layer in content
 
 
 # --- Mermaid diagram ---
@@ -138,17 +116,14 @@ class TestMermaidDiagram:
 class TestSkillDocsUpdated:
     """Ensure skill docs use new terminology."""
 
-    @pytest.mark.small
-    def test_pr_rules_uses_fellow(self):
-        content = (ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md").read_text(encoding="utf-8")
-        assert "Fellow" in content
+    SKILL_TERM_CASES = [
+        pytest.param("pr-rules", "Fellow", id="pr-rules-fellow"),
+        pytest.param("pr-rules", "Microscope", id="pr-rules-microscope"),
+        pytest.param("commit-rules", "Fellow", id="commit-rules-fellow"),
+    ]
 
     @pytest.mark.small
-    def test_pr_rules_uses_microscope(self):
-        content = (ROOT / ".claude" / "skills" / "pr-rules" / "SKILL.md").read_text(encoding="utf-8")
-        assert "Microscope" in content
-
-    @pytest.mark.small
-    def test_commit_rules_uses_fellow(self):
-        content = (ROOT / ".claude" / "skills" / "commit-rules" / "SKILL.md").read_text(encoding="utf-8")
-        assert "Fellow" in content
+    @pytest.mark.parametrize("skill,term", SKILL_TERM_CASES)
+    def test_skill_doc_uses_term(self, skill: str, term: str):
+        content = (ROOT / ".claude" / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
+        assert term in content
