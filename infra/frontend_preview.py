@@ -9,6 +9,7 @@ import json
 
 import pulumi
 import pulumi_aws as aws
+from constants import preview_tags
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -32,13 +33,14 @@ class FrontendPreviewEnvironment:
     def __init__(self, pr_number: int) -> None:
         stack = pulumi.get_stack().lower().replace("_", "-")
         name = f"myxo-fe-preview-{stack}-pr-{pr_number}"
+        _tags = preview_tags(cost_center="frontend-preview", pr_number=pr_number)
 
         # --- S3 Bucket --------------------------------------------------------
         self.bucket = aws.s3.BucketV2(
             f"{name}-bucket",
             bucket=name,
             force_destroy=True,
-            tags={"Name": name, "PR": str(pr_number)},
+            tags={"Name": name, **_tags},
         )
 
         # --- S3 Default Encryption (SSE-S3) -----------------------------------
@@ -107,7 +109,7 @@ class FrontendPreviewEnvironment:
             ),
             price_class="PriceClass_100",
             comment=f"Frontend preview for PR #{pr_number}",
-            tags={"Name": name, "PR": str(pr_number)},
+            tags={"Name": name, **_tags},
         )
 
         # --- S3 Bucket Policy (allow CloudFront OAC) -------------------------

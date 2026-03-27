@@ -1,12 +1,4 @@
-"""ECS Fargate resources for Myxo execution environment (PoC).
-
-Defines minimal ECS infrastructure:
-- ECS Cluster, ECR Repository, CloudWatch Log Group
-- IAM roles (task execution + task)
-- Fargate Task Definition (0.25 vCPU / 512 MB)
-- EFS file system for Nix store cache
-- Cost tags, ECR image scanning, CloudWatch metric filter
-"""
+"""ECS Task Definition, IAM roles, CloudWatch log group and metric filter."""
 
 import json
 
@@ -15,39 +7,20 @@ import pulumi
 import pulumi_aws as aws
 from constants import LOG_RETENTION_DAYS, cost_tags
 
+from .ecr import repo
+from .efs import nix_cache_ap, nix_cache_fs
+
 config = pulumi.Config("aws")
 _region = config.require("region")
 
-# --- Cost tags (#137) --------------------------------------------------------
 _COST_TAGS = cost_tags(cost_center="ai-agent")
 
-# --- providers ---------------------------------------------------------------
 ecs = aws.ecs
-ecr = aws.ecr
 iam = aws.iam
 cloudwatch = aws.cloudwatch
 
 # --- CloudWatch Log Group ----------------------------------------------------
 log_group = common.create_log_group("myxo-log-group", "/ecs/myxo", retention_in_days=LOG_RETENTION_DAYS)
-
-# --- ECR Repository ----------------------------------------------------------
-repo = ecr.Repository(
-    "myxo-base-repo",
-    name="myxo-base",
-    image_tag_mutability="MUTABLE",
-    force_delete=False,
-    image_scanning_configuration=ecr.RepositoryImageScanningConfigurationArgs(
-        scan_on_push=True,
-    ),
-    tags=_COST_TAGS,
-)
-
-# --- ECS Cluster -------------------------------------------------------------
-cluster = ecs.Cluster(
-    "myxo-cluster",
-    name="myxo-cluster",
-    tags=_COST_TAGS,
-)
 
 # --- IAM: Task Execution Role -----------------------------------------------
 task_execution_role = iam.Role(
@@ -90,51 +63,6 @@ iam.RolePolicy(
         }
     ),
 )
-
-# --- Fargate Spot Capacity Providers ----------------------------------------
-ecs.ClusterCapacityProviders(
-    "myxo-cluster-capacity-providers",
-    cluster_name=cluster.name,
-    capacity_providers=["FARGATE", "FARGATE_SPOT"],
-    default_capacity_provider_strategies=[
-        ecs.ClusterCapacityProvidersDefaultCapacityProviderStrategyArgs(
-            capacity_provider="FARGATE_SPOT",
-            weight=3,
-            base=0,
-        ),
-        ecs.ClusterCapacityProvidersDefaultCapacityProviderStrategyArgs(
-            capacity_provider="FARGATE",
-            weight=1,
-            base=1,
-        ),
-    ],
-)
-
-# --- EFS: Nix store cache ----------------------------------------------------
-nix_cache_fs = aws.efs.FileSystem(
-    "myxo-nix-cache",
-    encrypted=True,
-    performance_mode="generalPurpose",
-    tags={"Name": "myxo-nix-cache", **_COST_TAGS},
-)
-
-nix_cache_ap = aws.efs.AccessPoint(
-    "myxo-nix-cache-ap",
-    file_system_id=nix_cache_fs.id,
-    posix_user=aws.efs.AccessPointPosixUserArgs(uid=1000, gid=1000),
-    root_directory=aws.efs.AccessPointRootDirectoryArgs(
-        path="/nix-store",
-        creation_info=aws.efs.AccessPointRootDirectoryCreationInfoArgs(
-            owner_uid=1000,
-            owner_gid=1000,
-            permissions="755",
-        ),
-    ),
-    tags={"Name": "myxo-nix-cache-ap"},
-)
-
-# TODO(#137): Add EFS Mount Target once VPC/subnet resources are available.
-# aws.efs.MountTarget("myxo-nix-cache-mt", ...)
 
 # --- ECS Task Definition -----------------------------------------------------
 task_definition = ecs.TaskDefinition(
@@ -205,7 +133,6 @@ task_execution_metric_filter = cloudwatch.LogMetricFilter(
 )
 
 # --- Exports -----------------------------------------------------------------
-pulumi.export("cluster_name", cluster.name)
 pulumi.export("ecr_url", repo.repository_url)
 pulumi.export("task_definition_arn", task_definition.arn)
 pulumi.export("efs_file_system_id", nix_cache_fs.id)

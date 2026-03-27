@@ -13,16 +13,19 @@ import json
 import common
 import pulumi
 import pulumi_aws as aws
-from constants import LOG_RETENTION_DAYS
+from constants import LOG_RETENTION_DAYS, cost_tags
 
 iam = aws.iam
 cloudwatch = aws.cloudwatch
+
+_COST_TAGS = cost_tags(cost_center="cleanup")
 
 # --- CloudWatch Log Group for Lambda ----------------------------------------
 cleanup_log_group = common.create_log_group(
     "myxo-pr-cleanup-logs",
     "/aws/lambda/myxo-pr-cleanup",
     retention_in_days=LOG_RETENTION_DAYS,
+    tags=_COST_TAGS,
 )
 
 # --- IAM Role for Lambda execution ------------------------------------------
@@ -64,6 +67,7 @@ cleanup_lambda = aws.lambda_.Function(
     role=cleanup_role.arn,
     description="Clean up preview resources when PR is closed",
     code=pulumi.AssetArchive({"handler.py": pulumi.FileAsset("../lambda/pr_cleanup/handler.py")}),
+    tags=_COST_TAGS,
 )
 
 # --- EventBridge Rule -------------------------------------------------------

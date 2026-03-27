@@ -10,14 +10,16 @@ Validates that ECS infrastructure includes:
 from pathlib import Path
 
 INFRA_DIR = Path(__file__).resolve().parent.parent / "infra"
+ECS_PKG = INFRA_DIR / "ecs"
 
 
 def _ecs_source() -> str:
-    return (INFRA_DIR / "ecs.py").read_text()
+    """Return concatenated source of all files in the ecs package."""
+    return "\n\n".join(f.read_text() for f in sorted(ECS_PKG.glob("*.py")))
 
 
 def _constants_source() -> str:
-    return (INFRA_DIR / "constants.py").read_text()
+    return (INFRA_DIR / "constants.py").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

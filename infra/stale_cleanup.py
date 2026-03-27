@@ -16,7 +16,9 @@ import json
 import common
 import pulumi
 import pulumi_aws as aws
-from constants import LOG_RETENTION_DAYS
+from constants import LOG_RETENTION_DAYS, cost_tags
+
+_COST_TAGS = cost_tags(cost_center="cleanup")
 
 # --- IAM Role for Lambda ---------------------------------------------------
 cleanup_role = common.create_lambda_role("myxo-stale-cleanup")
@@ -67,6 +69,7 @@ cleanup_log_group = common.create_log_group(
     "myxo-stale-cleanup-logs",
     "/aws/lambda/myxo-stale-cleanup",
     retention_in_days=LOG_RETENTION_DAYS,
+    tags=_COST_TAGS,
 )
 
 # --- Lambda Function -------------------------------------------------------
@@ -79,6 +82,7 @@ cleanup_function = aws.lambda_.Function(
     memory_size=128,
     role=cleanup_role.arn,
     code=pulumi.AssetArchive({".": pulumi.FileArchive("../lambda/stale_cleanup")}),
+    tags=_COST_TAGS,
 )
 
 # --- EventBridge Schedule Rule ---------------------------------------------
