@@ -18,91 +18,110 @@ import pulumi
 import pulumi_aws as aws
 from constants import LOG_RETENTION_DAYS, cost_tags
 
-_COST_TAGS = cost_tags(cost_center="cleanup")
 
-# --- IAM Role for Lambda ---------------------------------------------------
-cleanup_role = common.create_lambda_role("myxo-stale-cleanup")
+# ---------------------------------------------------------------------------
+# StaleCleanupEnvironment
+# ---------------------------------------------------------------------------
+class StaleCleanupEnvironment:
+    """Lambda-based stale resource cleanup on a daily schedule.
 
-# Basic Lambda execution (CloudWatch Logs)
-common.attach_basic_execution_role("myxo-stale-cleanup", cleanup_role)
+    Creates an IAM role, CloudWatch log group, Lambda function,
+    and EventBridge schedule rule+target to scan for and remove
+    AWS resources tagged with AutoDelete=true past their expiry.
+    """
 
-# Inline policy for ECS + EC2 describe/delete with AutoDelete tag
-aws.iam.RolePolicy(
-    "myxo-stale-cleanup-policy",
-    role=cleanup_role.id,
-    policy=json.dumps(
-        {
-            "Version": "2012-10-17",
-            "Statement": [
+    def __init__(self) -> None:
+        _cost_tags = cost_tags(cost_center="cleanup")
+
+        # --- IAM Role for Lambda -------------------------------------------
+        self.role = common.create_lambda_role("myxo-stale-cleanup")
+
+        # Basic Lambda execution (CloudWatch Logs)
+        common.attach_basic_execution_role("myxo-stale-cleanup", self.role)
+
+        # Inline policy for ECS + EC2 describe/delete with AutoDelete tag
+        aws.iam.RolePolicy(
+            "myxo-stale-cleanup-policy",
+            role=self.role.id,
+            policy=json.dumps(
                 {
-                    "Effect": "Allow",
-                    "Action": [
-                        "ecs:DescribeTasks",
-                        "ecs:ListTasks",
-                        "ec2:DescribeInstances",
-                        "tag:GetResources",
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ecs:DescribeTasks",
+                                "ecs:ListTasks",
+                                "ec2:DescribeInstances",
+                                "tag:GetResources",
+                            ],
+                            "Sid": "ReadOnlyStaleResources",
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:ResourceTag/AutoDelete": "true",
+                                }
+                            },
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "tag:GetResources",
+                                "ecs:ListTasks",
+                                "ecs:ListClusters",
+                            ],
+                            "Resource": "*",
+                        },
                     ],
-                    "Sid": "ReadOnlyStaleResources",
-                    "Resource": "*",
-                    "Condition": {
-                        "StringEquals": {
-                            "aws:ResourceTag/AutoDelete": "true",
-                        }
-                    },
-                },
-                {
-                    "Effect": "Allow",
-                    "Action": [
-                        "tag:GetResources",
-                        "ecs:ListTasks",
-                        "ecs:ListClusters",
-                    ],
-                    "Resource": "*",
-                },
-            ],
-        }
-    ),
-)
+                }
+            ),
+        )
 
-# --- CloudWatch Log Group --------------------------------------------------
-cleanup_log_group = common.create_log_group(
-    "myxo-stale-cleanup-logs",
-    "/aws/lambda/myxo-stale-cleanup",
-    retention_in_days=LOG_RETENTION_DAYS,
-    tags=_COST_TAGS,
-)
+        # --- CloudWatch Log Group ------------------------------------------
+        self.log_group = common.create_log_group(
+            "myxo-stale-cleanup-logs",
+            "/aws/lambda/myxo-stale-cleanup",
+            retention_in_days=LOG_RETENTION_DAYS,
+            tags=_cost_tags,
+        )
 
-# --- Lambda Function -------------------------------------------------------
-cleanup_function = aws.lambda_.Function(
-    "myxo-stale-cleanup",
-    function_name="myxo-stale-cleanup",
-    runtime="python3.13",
-    handler="handler.handle",
-    timeout=300,
-    memory_size=128,
-    role=cleanup_role.arn,
-    code=pulumi.AssetArchive({".": pulumi.FileArchive("../lambda/stale_cleanup")}),
-    tags=_COST_TAGS,
-)
+        # --- Lambda Function -----------------------------------------------
+        self.cleanup_function = aws.lambda_.Function(
+            "myxo-stale-cleanup",
+            function_name="myxo-stale-cleanup",
+            runtime="python3.13",
+            handler="handler.handle",
+            timeout=300,
+            memory_size=128,
+            role=self.role.arn,
+            code=pulumi.AssetArchive({".": pulumi.FileArchive("../lambda/stale_cleanup")}),
+            tags=_cost_tags,
+        )
 
-# --- EventBridge Schedule Rule ---------------------------------------------
-schedule_rule = aws.cloudwatch.EventRule(
-    "myxo-stale-cleanup-schedule",
-    name="myxo-stale-cleanup-schedule",
-    description="Run stale resource cleanup daily at 03:00 UTC",
-    schedule_expression="cron(0 3 * * ? *)",
-)
+        # --- EventBridge Schedule Rule -------------------------------------
+        self.schedule_rule = aws.cloudwatch.EventRule(
+            "myxo-stale-cleanup-schedule",
+            name="myxo-stale-cleanup-schedule",
+            description="Run stale resource cleanup daily at 03:00 UTC",
+            schedule_expression="cron(0 3 * * ? *)",
+        )
 
-# --- EventBridge Target ----------------------------------------------------
-aws.cloudwatch.EventTarget(
-    "myxo-stale-cleanup-target",
-    rule=schedule_rule.name,
-    arn=cleanup_function.arn,
-)
+        # --- EventBridge Target --------------------------------------------
+        aws.cloudwatch.EventTarget(
+            "myxo-stale-cleanup-target",
+            rule=self.schedule_rule.name,
+            arn=self.cleanup_function.arn,
+        )
 
-# --- Lambda Permission for EventBridge ------------------------------------
-common.create_eventbridge_lambda_permission("myxo-stale-cleanup", cleanup_function, schedule_rule)
+        # --- Lambda Permission for EventBridge ----------------------------
+        common.create_eventbridge_lambda_permission("myxo-stale-cleanup", self.cleanup_function, self.schedule_rule)
+
+
+# ---------------------------------------------------------------------------
+# Instantiate at module level so Pulumi registers resources on import
+# ---------------------------------------------------------------------------
+stale_cleanup = StaleCleanupEnvironment()
 
 # --- Exports ---------------------------------------------------------------
-pulumi.export("stale_cleanup_function_arn", cleanup_function.arn)
-pulumi.export("stale_cleanup_schedule_rule", schedule_rule.name)
+pulumi.export("stale_cleanup_function_arn", stale_cleanup.cleanup_function.arn)
+pulumi.export("stale_cleanup_schedule_rule", stale_cleanup.schedule_rule.name)
