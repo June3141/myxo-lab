@@ -57,15 +57,15 @@ def create_lambda_role(name: str) -> aws.iam.Role:
 
 
 def create_log_group(
-    name: str,
-    path: str,
+    resource_name: str,
+    log_group_path: str,
     retention_in_days: int = 14,
     **kwargs: object,
 ) -> aws.cloudwatch.LogGroup:
     """Create a CloudWatch Log Group with standard retention."""
     return aws.cloudwatch.LogGroup(
-        name,
-        name=path,
+        resource_name,
+        name=log_group_path,
         retention_in_days=retention_in_days,
         **kwargs,
     )
