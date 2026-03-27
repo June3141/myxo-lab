@@ -18,81 +18,100 @@ from constants import LOG_RETENTION_DAYS, cost_tags
 iam = aws.iam
 cloudwatch = aws.cloudwatch
 
-_COST_TAGS = cost_tags(cost_center="cleanup")
 
-# --- CloudWatch Log Group for Lambda ----------------------------------------
-cleanup_log_group = common.create_log_group(
-    "myxo-pr-cleanup-logs",
-    "/aws/lambda/myxo-pr-cleanup",
-    retention_in_days=LOG_RETENTION_DAYS,
-    tags=_COST_TAGS,
-)
+# ---------------------------------------------------------------------------
+# CleanupEnvironment
+# ---------------------------------------------------------------------------
+class CleanupEnvironment:
+    """Lambda-based cleanup triggered by PR close events.
 
-# --- IAM Role for Lambda execution ------------------------------------------
-cleanup_role = common.create_lambda_role("myxo-pr-cleanup")
+    Creates an IAM role, CloudWatch log group, Lambda function,
+    and EventBridge rule+target to automatically clean up preview
+    resources when a pull request is closed.
+    """
 
-# CloudWatch Logs permissions
-common.attach_basic_execution_role("myxo-pr-cleanup", cleanup_role)
+    def __init__(self) -> None:
+        _cost_tags = cost_tags(cost_center="cleanup")
 
-# ECS task stop permissions
-iam.RolePolicy(
-    "myxo-pr-cleanup-ecs-policy",
-    role=cleanup_role.name,
-    policy=json.dumps(
-        {
-            "Version": "2012-10-17",
-            "Statement": [
+        # --- CloudWatch Log Group for Lambda --------------------------------
+        self.log_group = common.create_log_group(
+            "myxo-pr-cleanup-logs",
+            "/aws/lambda/myxo-pr-cleanup",
+            retention_in_days=LOG_RETENTION_DAYS,
+            tags=_cost_tags,
+        )
+
+        # --- IAM Role for Lambda execution ----------------------------------
+        self.role = common.create_lambda_role("myxo-pr-cleanup")
+
+        # CloudWatch Logs permissions
+        common.attach_basic_execution_role("myxo-pr-cleanup", self.role)
+
+        # ECS task stop permissions
+        iam.RolePolicy(
+            "myxo-pr-cleanup-ecs-policy",
+            role=self.role.name,
+            policy=json.dumps(
                 {
-                    "Effect": "Allow",
-                    "Action": [
-                        "ecs:StopTask",
-                        "ecs:ListTasks",
-                        "ecs:DescribeTasks",
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ecs:StopTask",
+                                "ecs:ListTasks",
+                                "ecs:DescribeTasks",
+                            ],
+                            "Resource": "arn:aws:ecs:*:*:task/myxo-cluster/*",
+                        }
                     ],
-                    "Resource": "arn:aws:ecs:*:*:task/myxo-cluster/*",
                 }
-            ],
-        }
-    ),
-)
+            ),
+        )
 
-# --- Lambda Function --------------------------------------------------------
-cleanup_lambda = aws.lambda_.Function(
-    "myxo-pr-cleanup",
-    function_name="myxo-pr-cleanup",
-    runtime="python3.13",
-    handler="handler.handle",
-    timeout=60,
-    memory_size=128,
-    role=cleanup_role.arn,
-    description="Clean up preview resources when PR is closed",
-    code=pulumi.AssetArchive({"handler.py": pulumi.FileAsset("../lambda/pr_cleanup/handler.py")}),
-    tags=_COST_TAGS,
-)
+        # --- Lambda Function ------------------------------------------------
+        self.cleanup_lambda = aws.lambda_.Function(
+            "myxo-pr-cleanup",
+            function_name="myxo-pr-cleanup",
+            runtime="python3.13",
+            handler="handler.handle",
+            timeout=60,
+            memory_size=128,
+            role=self.role.arn,
+            description="Clean up preview resources when PR is closed",
+            code=pulumi.AssetArchive({"handler.py": pulumi.FileAsset("../lambda/pr_cleanup/handler.py")}),
+            tags=_cost_tags,
+        )
 
-# --- EventBridge Rule -------------------------------------------------------
-pr_close_rule = cloudwatch.EventRule(
-    "myxo-pr-close-rule",
-    name="myxo-pr-close-rule",
-    description="Trigger cleanup Lambda on GitHub PR close events",
-    event_pattern=json.dumps(
-        {
-            "source": ["aws.partner/github.com"],
-            "detail-type": ["pull_request"],
-            "detail": {"action": ["closed"]},
-        }
-    ),
-)
+        # --- EventBridge Rule -----------------------------------------------
+        self.pr_close_rule = cloudwatch.EventRule(
+            "myxo-pr-close-rule",
+            name="myxo-pr-close-rule",
+            description="Trigger cleanup Lambda on GitHub PR close events",
+            event_pattern=json.dumps(
+                {
+                    "source": ["aws.partner/github.com"],
+                    "detail-type": ["pull_request"],
+                    "detail": {"action": ["closed"]},
+                }
+            ),
+        )
 
-cloudwatch.EventTarget(
-    "myxo-pr-close-target",
-    rule=pr_close_rule.name,
-    arn=cleanup_lambda.arn,
-)
+        cloudwatch.EventTarget(
+            "myxo-pr-close-target",
+            rule=self.pr_close_rule.name,
+            arn=self.cleanup_lambda.arn,
+        )
 
-# Allow EventBridge to invoke the Lambda
-common.create_eventbridge_lambda_permission("myxo-pr-cleanup", cleanup_lambda, pr_close_rule)
+        # Allow EventBridge to invoke the Lambda
+        common.create_eventbridge_lambda_permission("myxo-pr-cleanup", self.cleanup_lambda, self.pr_close_rule)
+
+
+# ---------------------------------------------------------------------------
+# Instantiate at module level so Pulumi registers resources on import
+# ---------------------------------------------------------------------------
+cleanup = CleanupEnvironment()
 
 # --- Exports ----------------------------------------------------------------
-pulumi.export("cleanup_lambda_arn", cleanup_lambda.arn)
-pulumi.export("cleanup_rule_arn", pr_close_rule.arn)
+pulumi.export("cleanup_lambda_arn", cleanup.cleanup_lambda.arn)
+pulumi.export("cleanup_rule_arn", cleanup.pr_close_rule.arn)
