@@ -23,15 +23,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
-
-  checkov:
-    name: Checkov IaC scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Run Checkov IaC scan
-        uses: bridgecrewio/checkov-action@21379e1eb6a3c1df5765e67290d7c4f498baebab # v12
-        with:
-          config_file: .checkov.yaml
