@@ -46,6 +46,5 @@ class TestContainerBuildTrivyVulnOnly:
         assert trivy_steps, "container-build.yml must have a Trivy step"
         for step in trivy_steps:
             with_block = step.get("with", {})
-            # Check either scanners key or scan-type key
             scanners = with_block.get("scanners", "")
             assert scanners == "vuln", f"Trivy in container-build.yml must use scanners: vuln, got: {scanners!r}"
