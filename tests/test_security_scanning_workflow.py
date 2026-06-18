@@ -34,9 +34,13 @@ class TestSecurityWorkflowNoTrivyIac:
 # ── container-build.yml — Trivy vuln only ──
 
 
-class TestContainerBuildTrivyVulnOnly:
-    def test_trivy_uses_scanners_vuln(self):
-        """container-build.yml Trivy step must explicitly use --scanners vuln."""
+class TestContainerBuildTrivyScanners:
+    def test_trivy_scans_vuln_and_secret(self):
+        """container-build.yml Trivy step must scan for both vulnerabilities and image secrets.
+
+        gitleaks only covers the git repository; image-layer secrets (base image,
+        build-time injection) are Trivy's responsibility.
+        """
         data = load_workflow(CONTAINER_WORKFLOW)
         trivy_steps = []
         for job in data.get("jobs", {}).values():
@@ -45,6 +49,7 @@ class TestContainerBuildTrivyVulnOnly:
                     trivy_steps.append(step)
         assert trivy_steps, "container-build.yml must have a Trivy step"
         for step in trivy_steps:
-            with_block = step.get("with", {})
-            scanners = with_block.get("scanners", "")
-            assert scanners == "vuln", f"Trivy in container-build.yml must use scanners: vuln, got: {scanners!r}"
+            scanners = {s.strip() for s in step.get("with", {}).get("scanners", "").split(",") if s.strip()}
+            assert {"vuln", "secret"} <= scanners, (
+                f"Trivy in container-build.yml must scan vuln and secret, got: {scanners!r}"
+            )
